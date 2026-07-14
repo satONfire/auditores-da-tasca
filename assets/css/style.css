@@ -1204,3 +1204,63 @@ border:none;
 cursor:pointer;
 
 }
+
+/* ===========================
+   CONSENTIMENTO RGPD
+   =========================== */
+
+.consentimento-rgpd{
+
+margin:25px 0;
+
+padding:15px;
+
+background:#1d1d1d;
+
+border:1px solid #444;
+
+border-left:4px solid var(--gold);
+
+border-radius:8px;
+
+font-size:14px;
+
+line-height:1.6;
+
+}
+
+.consentimento-rgpd label{
+
+display:flex;
+
+align-items:flex-start;
+
+gap:10px;
+
+cursor:pointer;
+
+}
+
+.consentimento-rgpd input{
+
+width:auto;
+
+margin-top:4px;
+
+}
+
+.consentimento-rgpd a{
+
+color:var(--gold);
+
+font-weight:bold;
+
+text-decoration:none;
+
+}
+
+.consentimento-rgpd a:hover{
+
+text-decoration:underline;
+
+}
