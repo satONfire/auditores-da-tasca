@@ -60,8 +60,33 @@ async function verificarCertificado() {
     document.getElementById("resEstado").textContent =
         "✅ Certificação encontrada";
 
-    document.getElementById("resBadge").textContent =
-        resultado.nivel;
+const badge = document.getElementById("resBadge");
+
+switch(resultado.nivel){
+
+    case "Certified":
+    case "Certified":
+        badge.src = "assets/img/certified.png";
+        break;
+
+    case "Senior":
+    case "Senior":
+        badge.src = "assets/img/senior.png";
+        break;
+
+    case "Elite":
+    case "Elite Auditor":
+        badge.src = "assets/img/elite.png";
+        break;
+
+    case "Legend":
+    case "Legend":
+        badge.src = "assets/img/legend.png";
+        break;
+
+    default:
+        badge.src = "";
+}
     const qr = document.getElementById("qrCode");
 
 qr.innerHTML = "";
