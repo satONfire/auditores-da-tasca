@@ -138,7 +138,28 @@ function verificarCertificado() {
     document.getElementById("resValidade").textContent =
         resultado.validade;
 
-    document.getElementById("resSituacao").textContent =
-        resultado.estado;
+const estado=document.getElementById("resSituacao");
+
+estado.textContent=resultado.estado;
+
+estado.style.fontWeight="bold";
+
+if(resultado.estado==="Válido"){
+
+estado.style.color="#32c36c";
+
+}
+
+else if(resultado.estado==="Expirado"){
+
+estado.style.color="#ffb400";
+
+}
+
+else{
+
+estado.style.color="#ff4d4d";
+
+}
 
 }
