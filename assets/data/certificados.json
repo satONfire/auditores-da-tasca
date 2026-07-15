@@ -7,16 +7,9 @@
     "validade": "15/07/2027",
     "estado": "Válido"
   },
+
   {
     "numero": "ATA-2026-0002",
-    "nome": "Restaurante O Pipo",
-    "nivel": "Elite Auditor",
-    "emissao": "01/07/2026",
-    "validade": "01/07/2029",
-    "estado": "Válido"
-  },
-  {
-    "numero": "ATA-2026-0003",
     "nome": "Jacinto Reserva Especial",
     "nivel": "Senior",
     "emissao": "10/01/2025",
@@ -24,7 +17,7 @@
     "estado": "Válido"
   },
   {
-    "numero": "ATA-2026-0004",
+    "numero": "ATA-2026-0003",
     "nome": "Zé dos Cornos",
     "nivel": "Elite",
     "emissao": "10/01/2025",
@@ -32,7 +25,7 @@
     "estado": "Válido"
   },
   {
-    "numero": "ATA-2026-0005",
+    "numero": "ATA-2026-0004",
     "nome": "Nuno lérias",
     "nivel": "Legend",
     "emissao": "10/07/2025",
