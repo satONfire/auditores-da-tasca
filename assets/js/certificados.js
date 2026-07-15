@@ -1,88 +1,28 @@
-const certificados = [
+let certificados = [];
 
-{
+async function carregarCertificados() {
 
-numero:"ATA-2026-0001",
+    try {
 
-nome:"Peter´s",
+        const resposta = await fetch("assets/data/certificados.json");
 
-nivel:"Certified",
+        certificados = await resposta.json();
 
-emissao:"15/07/2026",
+    } catch (erro) {
 
-validade:"15/07/2027",
+        console.error("Erro ao carregar certificados:", erro);
 
-estado:"Válido"
-
-},
-
-{
-
-numero:"ATA-2026-0002",
-
-nome:"Restaurante O Pipo",
-
-nivel:"Elite Auditor",
-
-emissao:"01/07/2026",
-
-validade:"01/07/2029",
-
-estado:"Válido"
-
-},
-
-{
-
-numero:"ATA-2026-0003",
-
-nome:"Jacinto Reserva Especial",
-
-nivel:"Senior",
-
-emissao:"10/01/2025",
-
-validade:"10/01/2027",
-
-estado:"Válido"
+    }
 
 }
-    ,
 
-{
+async function verificarCertificado() {
 
-numero:"ATA-2026-0004",
+    if (certificados.length === 0) {
 
-nome:"Zé dos Cornos",
+        await carregarCertificados();
 
-nivel:"Elite",
-
-emissao:"10/01/2025",
-
-validade:"10/01/2028",
-
-estado:"Válido"
-
-}
- ,
-
-{
-
-numero:"ATA-2026-0005",
-
-nome:"Nuno lérias",
-
-nivel:"Legend",
-
-emissao:"10/07/2025",
-
-validade:"N/A",
-
-estado:"Válido"
-
-}
-];
-function verificarCertificado() {
+    }
 
     const numero = document
         .getElementById("certNumber")
@@ -90,15 +30,15 @@ function verificarCertificado() {
         .trim()
         .toUpperCase();
 
-    const resultado = certificados.find(c =>
-        c.numero.toUpperCase() === numero
+    const resultado = certificados.find(certificado =>
+        certificado.numero.toUpperCase() === numero
     );
 
     const painel = document.getElementById("resultadoCertificado");
 
-    if (!resultado) {
+    painel.style.display = "block";
 
-        painel.style.display = "block";
+    if (!resultado) {
 
         document.getElementById("resEstado").textContent =
             "❌ Certificação não encontrada";
@@ -113,9 +53,8 @@ function verificarCertificado() {
         document.getElementById("resSituacao").textContent = "-";
 
         return;
-    }
 
-    painel.style.display = "block";
+    }
 
     document.getElementById("resEstado").textContent =
         "✅ Certificação encontrada";
@@ -138,28 +77,31 @@ function verificarCertificado() {
     document.getElementById("resValidade").textContent =
         resultado.validade;
 
-const estado=document.getElementById("resSituacao");
+    const estado = document.getElementById("resSituacao");
 
-estado.textContent=resultado.estado;
+    estado.textContent = resultado.estado;
 
-estado.style.fontWeight="bold";
+    estado.style.fontWeight = "bold";
 
-if(resultado.estado==="Válido"){
+    switch (resultado.estado) {
 
-estado.style.color="#32c36c";
+        case "Válido":
+            estado.style.color = "#32c36c";
+            break;
+
+        case "Expirado":
+            estado.style.color = "#ffb400";
+            break;
+
+        case "Revogado":
+            estado.style.color = "#ff4d4d";
+            break;
+
+        default:
+            estado.style.color = "#ffffff";
+
+    }
 
 }
 
-else if(resultado.estado==="Expirado"){
-
-estado.style.color="#ffb400";
-
-}
-
-else{
-
-estado.style.color="#ff4d4d";
-
-}
-
-}
+window.addEventListener("DOMContentLoaded", carregarCertificados);
