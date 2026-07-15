@@ -1750,3 +1750,84 @@ flex-direction:column;
     background:#e3c04b;
     transform:translateY(-2px);
 }
+/* ===================================================
+CERTIFICADO OFICIAL
+=================================================== */
+
+.certificate{
+
+background:#181818;
+
+border:2px solid #d4af37;
+
+border-radius:20px;
+
+padding:40px;
+
+}
+
+.certificate-top{
+
+display:flex;
+
+align-items:center;
+
+gap:30px;
+
+margin-bottom:30px;
+
+flex-wrap:wrap;
+
+}
+
+.certificate-logo{
+
+width:90px;
+
+}
+
+.certificate-top h2{
+
+margin-bottom:10px;
+
+}
+
+.certificate-body{
+
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+
+gap:25px;
+
+margin:40px 0;
+
+}
+
+.certificate-item{
+
+background:#222;
+
+padding:20px;
+
+border-radius:12px;
+
+}
+
+.certificate-item strong{
+
+display:block;
+
+color:#d4af37;
+
+margin-bottom:8px;
+
+}
+
+.certificate-footer{
+
+text-align:center;
+
+margin-top:30px;
+
+}
