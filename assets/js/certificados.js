@@ -170,3 +170,40 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
 });
+async function gerarPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const elemento = document.getElementById("printArea");
+
+    const canvas = await html2canvas(elemento, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+    });
+
+    const larguraPDF = 190;
+    const alturaPDF = canvas.height * larguraPDF / canvas.width;
+
+    pdf.addImage(
+        imgData,
+        "PNG",
+        10,
+        10,
+        larguraPDF,
+        alturaPDF
+    );
+
+    const numero = document.getElementById("resNumero").textContent || "Certificado";
+
+    pdf.save(numero + ".pdf");
+
+}
