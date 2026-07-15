@@ -74,7 +74,8 @@ Introduza o número da certificação emitida pelos Auditores da Tasca.
 <input
 type="text"
 id="certNumber"
-placeholder="Ex.: ATA-2026-0001">
+placeholder="Ex.: ATA-2026-0001"
+onkeypress="if(event.key==='Enter') verificarCertificado();">
 
 <button
 class="btn"
