@@ -1264,3 +1264,182 @@ text-decoration:none;
 text-decoration:underline;
 
 }
+/* =====================================================
+   CERTIFICAÇÕES ATA
+===================================================== */
+
+.certification-card{
+    text-align:center;
+    transition:0.35s;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.certification-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 15px 35px rgba(0,0,0,.35);
+}
+
+.cert-img{
+    width:170px;
+    margin:10px auto 25px;
+    display:block;
+}
+
+.certification-card h3{
+    margin-bottom:15px;
+}
+
+.certification-card .badge{
+    display:inline-block;
+    margin-bottom:20px;
+    padding:8px 18px;
+    border-radius:30px;
+    font-size:.85rem;
+    font-weight:700;
+    letter-spacing:1px;
+}
+
+.btn-details{
+    margin-top:20px;
+    width:100%;
+}
+
+/* Painéis */
+
+.cert-panel{
+
+    display:none;
+
+    margin:35px 0;
+
+    padding:35px;
+
+    border-radius:18px;
+
+    background:#181818;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    animation:fadeCert .35s ease;
+
+}
+
+.cert-panel.active{
+    display:block;
+}
+
+.cert-panel h3{
+
+    font-size:2rem;
+
+    margin-bottom:25px;
+
+    color:#d8b15d;
+
+}
+
+.cert-panel p{
+
+    margin:15px 0;
+
+}
+
+.cert-panel ul{
+
+    margin:20px 0 25px 20px;
+
+}
+
+.cert-panel li{
+
+    margin:8px 0;
+
+}
+
+.cert-panel .btn{
+
+    margin-top:20px;
+
+    display:inline-block;
+
+}
+
+/* tabela */
+
+.cert-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    margin-top:70px;
+
+}
+
+.cert-table th{
+
+    background:#d8b15d;
+
+    color:#111;
+
+    padding:16px;
+
+}
+
+.cert-table td{
+
+    padding:16px;
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+.cert-table tr:hover{
+
+    background:rgba(255,255,255,.03);
+
+}
+
+@keyframes fadeCert{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+.cert-img{
+
+    width:120px;
+
+}
+
+.cert-panel{
+
+    padding:25px;
+
+}
+
+.cert-panel h3{
+
+    font-size:1.6rem;
+
+}
+
+}
