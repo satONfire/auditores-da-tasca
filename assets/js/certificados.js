@@ -4,9 +4,9 @@ const certificados = [
 
 numero:"ATA-2026-0001",
 
-nome:"João da Silva",
+nome:"Peter´s",
 
-nivel:"Certified Auditor",
+nivel:"Certified",
 
 emissao:"15/07/2026",
 
@@ -36,18 +36,51 @@ estado:"Válido"
 
 numero:"ATA-2026-0003",
 
-nome:"José Santos",
+nome:"Jacinto Reserva Especial",
 
-nivel:"Senior Auditor",
+nivel:"Senior",
 
 emissao:"10/01/2025",
 
-validade:"10/01/2026",
+validade:"10/01/2027",
 
-estado:"Expirado"
+estado:"Válido"
 
 }
+    ,
 
+{
+
+numero:"ATA-2026-0004",
+
+nome:"Zé dos Cornos",
+
+nivel:"Elite",
+
+emissao:"10/01/2025",
+
+validade:"10/01/2028",
+
+estado:"Válido"
+
+}
+ ,
+
+{
+
+numero:"ATA-2026-0005",
+
+nome:"Nuno "lérias",
+
+nivel:"Legend",
+
+emissao:"10/07/2065",
+
+validade:"N/A",
+
+estado:"Válido"
+
+}
 ];
 function verificarCertificado() {
 
