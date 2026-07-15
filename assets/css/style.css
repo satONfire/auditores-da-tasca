@@ -1507,3 +1507,54 @@ padding:25px;
 }
 
 }
+/* ==========================================
+   MERCHANDISING
+========================================== */
+
+.coming-icon{
+
+    font-size:70px;
+
+    margin:20px auto;
+
+    text-align:center;
+
+}
+
+.card img{
+
+    width:100%;
+
+    border-radius:12px;
+
+    margin-bottom:20px;
+
+    transition:.35s;
+
+}
+
+.card:hover img{
+
+    transform:scale(1.03);
+
+}
+
+.badge{
+
+    display:inline-block;
+
+    margin-top:15px;
+
+    padding:8px 18px;
+
+    border-radius:25px;
+
+    background:#d4af37;
+
+    color:#111;
+
+    font-size:.85rem;
+
+    font-weight:bold;
+
+}
