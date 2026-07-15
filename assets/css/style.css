@@ -1599,3 +1599,8 @@ line-height:1.8;
 color:#bbb;
 
 }
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
