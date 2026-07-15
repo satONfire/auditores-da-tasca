@@ -58,329 +58,207 @@
 
 <div class="container">
 
-<h2>Certificações Oficiais</h2>
+<h2>Certificações ATA</h2>
+
+<p style="text-align:center;max-width:900px;margin:0 auto 60px;color:#ccc;font-size:18px;">
+
+As Certificações ATA distinguem os membros que demonstram elevados padrões de desempenho nas auditorias oficiais dos Auditores da Tasca. Cada certificação é atribuída após avaliação técnica e possui um período de validade próprio.
+
+</p>
 
 <div class="cards">
 
-<div class="card">
+<!-- CERTIFIED -->
 
-<span class="badge">PLATINUM</span>
+<div class="card certification-card">
 
-<h3>🍷 Vinho do Jacinto</h3>
+<img src="assets/img/certified.png" alt="Certified Auditor" class="cert-img">
 
-<p>
+<h3>Certified Auditor</h3>
 
-Referência: AT-WINE-001
+<p class="badge">Nível I</p>
 
-</p>
+<p>Certificação inicial atribuída após aprovação na auditoria ATA.</p>
 
-<p>
+<button class="btn btn-details" onclick="toggleCert('cert1')">
 
-Estado
+Ver Requisitos
 
-<br>
-
-★★★★★
-
-</p>
-
-<p>
-
-Auditor Responsável
-
-<br>
-
-Eng.º Pedro Botelho
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
+</button>
 
 </div>
 
-<div class="card">
+<!-- SENIOR -->
 
-<span class="badge">CERTIFICADO</span>
+<div class="card certification-card">
 
-<h3>🍷 Vinho Branco</h3>
+<img src="assets/img/senior.png" alt="Senior Auditor" class="cert-img">
 
-<p>
+<h3>Senior Auditor</h3>
 
-Referência: AT-WINE-002
+<p class="badge">Nível II</p>
 
-</p>
+<p>Reconhece experiência e consistência nas auditorias realizadas.</p>
 
-<p>
+<button class="btn btn-details" onclick="toggleCert('cert2')">
 
-Temperatura Conforme
+Ver Requisitos
 
-</p>
-
-<p>
-
-Categoria Premium
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
+</button>
 
 </div>
 
-<div class="card">
+<!-- ELITE -->
 
-<span class="badge">CERTIFICADO</span>
+<div class="card certification-card">
 
-<h3>🍷 Vinho Tinto</h3>
+<img src="assets/img/elite.png" alt="Elite Auditor" class="cert-img">
 
-<p>
+<h3>Elite Auditor</h3>
 
-Referência: AT-WINE-003
+<p class="badge">Nível III</p>
 
-</p>
+<p>Reservado aos membros com desempenho de excelência.</p>
 
-<p>
+<button class="btn btn-details" onclick="toggleCert('cert3')">
 
-Persistência Excelente
+Ver Requisitos
 
-</p>
-
-<p>
-
-Aroma Conforme
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
+</button>
 
 </div>
 
-<div class="card">
+<!-- LEGEND -->
 
-<span class="badge">OURO</span>
+<div class="card certification-card">
 
-<h3>🍺 Cerveja Branca</h3>
+<img src="assets/img/legend.png" alt="Legend Auditor" class="cert-img">
 
-<p>
+<h3>Legend Auditor</h3>
 
-Referência: AT-BEER-001
+<p class="badge">Nível IV</p>
 
-</p>
+<p>A distinção máxima atribuída pelos Auditores da Tasca.</p>
 
-<p>
+<button class="btn btn-details" onclick="toggleCert('cert4')">
 
-Temperatura Ideal
+Ver Requisitos
 
-</p>
-
-<p>
-
-Espuma Conforme
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
-
-</div>
-
-<div class="card">
-
-<span class="badge">OURO</span>
-
-<h3>🍺 Cerveja Menos Branca</h3>
-
-<p>
-
-Referência: AT-BEER-002
-
-</p>
-
-<p>
-
-Qualidade Aprovada
-
-</p>
-
-<p>
-
-Serviço Excelente
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
-
-</div>
-
-<div class="card">
-
-<span class="badge">PREMIUM</span>
-
-<h3>🍺 Cerveja Preta</h3>
-
-<p>
-
-Referência: AT-BEER-003
-
-</p>
-
-<p>
-
-Conforme
-
-</p>
-
-<p>
-
-Aprovada
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
-
-</div>
-
-<div class="card">
-
-<span class="badge">ISO TASCA</span>
-
-<h3>🏍 Machine Parking</h3>
-
-<p>
-
-Precisão de Estacionamento
-
-</p>
-
-<p>
-
-99,87%
-
-</p>
-
-<p>
-
-Inclinação Conforme
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
-
-</div>
-
-<div class="card">
-
-<span class="badge">MASTER</span>
-
-<h3>🍺 Human Drinking</h3>
-
-<p>
-
-Resistência
-
-</p>
-
-<p>
-
-★★★★★
-
-</p>
-
-<p>
-
-Reposição Conforme
-
-</p>
-
-<a href="#" class="btn">
-
-Ver Certificado
-
-</a>
+</button>
 
 </div>
 
 </div>
 
+<!-- CERTIFIED -->
+
+<div id="cert1" class="cert-panel">
+
+<h3>Certified Auditor</h3>
+
+<p><strong>Estado:</strong> Certificação Oficial ATA</p>
+
+<p><strong>Requisitos:</strong></p>
+
+<ul>
+
+<li>Auditoria concluída com sucesso.</li>
+
+<li>Aprovação da Comissão Técnica.</li>
+
+<li>Cumprimento do Regulamento ATA.</li>
+
+</ul>
+
+<p><strong>Validade:</strong> 12 meses</p>
+
+<p><strong>Renovação:</strong> Obrigatória</p>
+
+<a href="contactos.html" class="btn">Solicitar Auditoria</a>
+
 </div>
 
-</section>
+<!-- SENIOR -->
 
-<section class="section dark">
+<div id="cert2" class="cert-panel">
 
-<div class="container">
+<h3>Senior Auditor</h3>
 
-<h2>Escala Oficial de Certificação</h2>
+<p><strong>Estado:</strong> Certificação Oficial ATA</p>
 
-<table>
+<p><strong>Requisitos:</strong></p>
 
-<tr>
+<ul>
 
-<th>Nível</th>
+<li>Auditoria aprovada.</li>
 
-<th>Descrição</th>
+<li>Experiência comprovada.</li>
 
-</tr>
+<li>Conformidade contínua.</li>
 
-<tr>
+</ul>
 
-<td><span class="badge">STANDARD</span></td>
+<p><strong>Validade:</strong> 24 meses</p>
 
-<td>Conforme com os requisitos mínimos da Tasca.</td>
+<p><strong>Renovação:</strong> Obrigatória</p>
 
-</tr>
+<a href="contactos.html" class="btn">Solicitar Auditoria</a>
 
-<tr>
+</div>
 
-<td><span class="badge">OURO</span></td>
+<!-- ELITE -->
 
-<td>Qualidade acima da média.</td>
+<div id="cert3" class="cert-panel">
 
-</tr>
+<h3>Elite Auditor</h3>
 
-<tr>
+<p><strong>Estado:</strong> Certificação Oficial ATA</p>
 
-<td><span class="badge">PLATINUM</span></td>
+<p><strong>Requisitos:</strong></p>
 
-<td>Produto de excelência reconhecida.</td>
+<ul>
 
-</tr>
+<li>Desempenho de excelência.</li>
 
-<tr>
+<li>Auditorias sucessivas aprovadas.</li>
 
-<td><span class="badge">MASTER</span></td>
+<li>Reconhecimento da Comissão ATA.</li>
 
-<td>Reservado aos melhores exemplares auditados.</td>
+</ul>
 
-</tr>
+<p><strong>Validade:</strong> 36 meses</p>
 
-</table>
+<p><strong>Renovação:</strong> Obrigatória</p>
+
+<a href="contactos.html" class="btn">Solicitar Auditoria</a>
+
+</div>
+
+<!-- LEGEND -->
+
+<div id="cert4" class="cert-panel">
+
+<h3>Legend Auditor</h3>
+
+<p><strong>Estado:</strong> Certificação Exclusiva ATA</p>
+
+<p><strong>Requisitos:</strong></p>
+
+<ul>
+
+<li>Atribuição por deliberação da Comissão Técnica.</li>
+
+<li>Reconhecimento excecional.</li>
+
+</ul>
+
+<p><strong>Validade:</strong> Vitalícia</p>
+
+<p><strong>Renovação:</strong> Não aplicável.</p>
+
+<a href="contactos.html" class="btn">Solicitar Auditoria</a>
+
+</div>
 
 </div>
 
