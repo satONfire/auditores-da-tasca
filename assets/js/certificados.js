@@ -62,6 +62,22 @@ async function verificarCertificado() {
 
     document.getElementById("resBadge").textContent =
         resultado.nivel;
+    const qr = document.getElementById("qrCode");
+
+qr.innerHTML = "";
+
+new QRCode(qr,{
+
+    text:
+    window.location.origin +
+    "/verificar-certificacao.html?cert=" +
+    resultado.numero,
+
+    width:140,
+
+    height:140
+
+});
 
     document.getElementById("resNumero").textContent =
         resultado.numero;
