@@ -209,48 +209,40 @@ Especialista em Instrumentação de Copos, Ensaios de Temperatura e Auditorias d
 
 <h2>Pedido de Auditoria</h2>
 
-<form>
+<form id="auditoriaForm">
 
 <div class="cards">
 
 <div>
 
 <label>Nome</label>
-
-<input type="text" placeholder="Nome do requerente">
+<input type="text" id="nome" placeholder="Nome do requerente" required>
 
 </div>
 
 <div>
 
 <label>Email</label>
-
-<input type="email" placeholder="email@exemplo.pt">
+<input type="email" id="email" placeholder="email@exemplo.pt" required>
 
 </div>
 
 <div>
 
 <label>Estabelecimento</label>
-
-<input type="text" placeholder="Nome da Tasca">
+<input type="text" id="estabelecimento" placeholder="Nome da Tasca" required>
 
 </div>
 
 <div>
 
 <label>Tipo de Auditoria</label>
-
-<select>
+<select id="auditoria">
 
 <option>Certificação de Bebidas</option>
-
 <option>Machine Parking</option>
-
 <option>Human Drinking</option>
-
 <option>Petiscos</option>
-
 <option>Auditoria Completa</option>
 
 </select>
@@ -262,26 +254,19 @@ Especialista em Instrumentação de Copos, Ensaios de Temperatura e Auditorias d
 <br>
 
 <label>Mensagem</label>
-
-<textarea rows="8" placeholder="Descreva o pedido..."></textarea>
+<textarea id="mensagem" rows="8" placeholder="Descreva o pedido..."></textarea>
 
 <br><br>
 
-  <div class="consentimento-rgpd">
-
+<div class="consentimento-rgpd">
 <label>
-
 <input type="checkbox" name="rgpd" required>
-
 Li e aceito a <a href="privacidade.html" target="_blank">Política de Privacidade</a> e autorizo o tratamento dos dados fornecidos para resposta ao meu pedido de contacto.
-
 </label>
-
 </div>
-<button class="btn">
 
+<button type="submit" class="btn">
 Solicitar Auditoria
-
 </button>
 
 </form>
@@ -411,6 +396,36 @@ Fundado por <strong>O Presidente</strong> e <strong>O Engenheiro</strong>
 </footer>
 
 <script src="assets/js/main.js"></script>
+<script>
+document.getElementById("auditoriaForm").addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const destinatario = "geral@auditoresdatasca.pt"; // Altera para o teu email
+
+    const assunto = "Pedido de Auditoria - " +
+        document.getElementById("estabelecimento").value;
+
+    const corpo =
+`Pedido de Auditoria
+
+Nome: ${document.getElementById("nome").value}
+
+Email: ${document.getElementById("email").value}
+
+Estabelecimento: ${document.getElementById("estabelecimento").value}
+
+Tipo de Auditoria: ${document.getElementById("auditoria").value}
+
+Mensagem:
+${document.getElementById("mensagem").value}
+`;
+
+    window.location.href =
+        `mailto:${destinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+
+});
+</script>
 
 </body>
 
