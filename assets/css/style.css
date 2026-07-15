@@ -1946,3 +1946,14 @@ text-align:center;
     border-radius:8px;
 
 }
+.badge-image{
+
+    width:180px;
+
+    height:auto;
+
+    display:block;
+
+    margin:20px auto;
+
+}
