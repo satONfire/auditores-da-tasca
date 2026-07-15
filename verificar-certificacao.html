@@ -14,6 +14,9 @@
 <link rel="icon" href="/favicon.ico">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </head>
 
@@ -151,9 +154,9 @@ Verificar
 
     <div id="qrCode" class="certificate-qr"></div>
 
-    <button class="btn" onclick="window.print()">
-        🖨️ Imprimir Certificado
-    </button>
+<button class="btn" onclick="gerarPDF()">
+    📄 Descarregar Certificado
+</button>
 
 </div>
 
