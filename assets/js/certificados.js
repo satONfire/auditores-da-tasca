@@ -104,4 +104,27 @@ async function verificarCertificado() {
 
 }
 
-window.addEventListener("DOMContentLoaded", carregarCertificados);
+// Inicialização efetuada no bloco seguinte
+function obterParametro(nome){
+
+    const parametros = new URLSearchParams(window.location.search);
+
+    return parametros.get(nome);
+
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+    await carregarCertificados();
+
+    const cert = obterParametro("cert");
+
+    if(cert){
+
+        document.getElementById("certNumber").value = cert;
+
+        verificarCertificado();
+
+    }
+
+});
