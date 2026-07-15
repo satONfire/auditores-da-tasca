@@ -44,6 +44,7 @@ async function verificarCertificado() {
             "❌ Certificação não encontrada";
 
         document.getElementById("resBadge").textContent = "";
+        document.title =resultado.numero + " | Certificação ATA";
 
         document.getElementById("resNumero").textContent = "-";
         document.getElementById("resNome").textContent = "-";
