@@ -1558,3 +1558,44 @@ padding:25px;
     font-weight:bold;
 
 }
+/* ==========================================
+LOJA OFICIAL
+========================================== */
+
+.store-placeholder{
+
+max-width:850px;
+
+margin:auto;
+
+text-align:center;
+
+padding:70px 30px;
+
+}
+
+.store-icon{
+
+font-size:100px;
+
+margin-bottom:30px;
+
+}
+
+.store-placeholder h2{
+
+margin-bottom:25px;
+
+}
+
+.store-placeholder p{
+
+margin-bottom:20px;
+
+font-size:18px;
+
+line-height:1.8;
+
+color:#bbb;
+
+}
