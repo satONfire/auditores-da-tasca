@@ -244,3 +244,36 @@ document.querySelectorAll(".year").forEach(el=>{
     el.innerHTML = year;
 
 });
+/* ==================================================
+   CERTIFICAÇÕES ATA
+================================================== */
+
+function toggleCert(id){
+
+    const panels=document.querySelectorAll(".cert-panel");
+
+    panels.forEach(panel=>{
+
+        if(panel.id!==id){
+
+            panel.classList.remove("active");
+
+        }
+
+    });
+
+    document.getElementById(id).classList.toggle("active");
+
+    if(document.getElementById(id).classList.contains("active")){
+
+        document.getElementById(id).scrollIntoView({
+
+            behavior:"smooth",
+
+            block:"center"
+
+        });
+
+    }
+
+}
