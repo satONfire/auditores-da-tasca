@@ -172,38 +172,43 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 async function gerarPDF() {
 
-    const { jsPDF } = window.jspdf;
+    const botao = document.getElementById("btnPDF");
 
-    const elemento = document.getElementById("printArea");
+    botao.style.display = "none";
 
-    const canvas = await html2canvas(elemento, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff"
-    });
+    try {
 
-    const imgData = canvas.toDataURL("image/png");
+        const { jsPDF } = window.jspdf;
 
-    const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-    });
+        const elemento = document.getElementById("printArea");
 
-    const larguraPDF = 190;
-    const alturaPDF = canvas.height * larguraPDF / canvas.width;
+        const canvas = await html2canvas(elemento, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
 
-    pdf.addImage(
-        imgData,
-        "PNG",
-        10,
-        10,
-        larguraPDF,
-        alturaPDF
-    );
+        const imgData = canvas.toDataURL("image/png");
 
-    const numero = document.getElementById("resNumero").textContent || "Certificado";
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
 
-    pdf.save(numero + ".pdf");
+        const larguraPDF = 190;
+        const alturaPDF = canvas.height * larguraPDF / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 10, 10, larguraPDF, alturaPDF);
+
+        const numero = document.getElementById("resNumero").textContent || "Certificado";
+
+        pdf.save(numero + ".pdf");
+
+    } finally {
+
+        botao.style.display = "block";
+
+    }
 
 }
