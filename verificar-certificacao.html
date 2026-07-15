@@ -89,50 +89,73 @@ Verificar
 
 <div id="resultadoCertificado" class="cert-result" style="display:none;">
 
-    <div class="cert-header">
+    <div class="certificate" id="printArea">
 
-        <h2 id="resEstado"></h2>
+        <div class="certificate-header">
 
-        <span id="resBadge" class="badge"></span>
+            <img src="assets/img/logo.png"
+                 class="certificate-logo"
+                 alt="ATA">
 
-    </div>
+            <h2>AUDITORES DA TASCA</h2>
 
-    <div class="cert-grid">
+            <p>CERTIFICADO OFICIAL ATA</p>
 
-        <div>
-            <strong>N.º Certificado</strong>
-            <span id="resNumero"></span>
         </div>
 
-        <div>
-            <strong>Entidade / Membro</strong>
-            <span id="resNome"></span>
+        <div class="certificate-status">
+
+            <h3 id="resEstado"></h3>
+
+            <span id="resBadge" class="badge"></span>
+
         </div>
 
-        <div>
-            <strong>Certificação</strong>
-            <span id="resNivel"></span>
+        <div class="certificate-body">
+
+            <div class="certificate-item">
+                <strong>N.º Certificado</strong>
+                <span id="resNumero"></span>
+            </div>
+
+            <div class="certificate-item">
+                <strong>Entidade / Membro</strong>
+                <span id="resNome"></span>
+            </div>
+
+            <div class="certificate-item">
+                <strong>Certificação</strong>
+                <span id="resNivel"></span>
+            </div>
+
+            <div class="certificate-item">
+                <strong>Emitido em</strong>
+                <span id="resEmissao"></span>
+            </div>
+
+            <div class="certificate-item">
+                <strong>Válido até</strong>
+                <span id="resValidade"></span>
+            </div>
+
+            <div class="certificate-item">
+                <strong>Estado</strong>
+                <span id="resSituacao"></span>
+            </div>
+
         </div>
 
-        <div>
-            <strong>Emitido em</strong>
-            <span id="resEmissao"></span>
-        </div>
+        <div class="certificate-footer">
 
-        <div>
-            <strong>Válido até</strong>
-            <span id="resValidade"></span>
-        </div>
+            <button class="btn" onclick="window.print()">
+                🖨️ Imprimir Certificado
+            </button>
 
-        <div>
-            <strong>Estado</strong>
-            <span id="resSituacao"></span>
         </div>
 
     </div>
 
 </div>
-
 <footer>
 
 <div class="container">
@@ -156,5 +179,3 @@ Verificar
 </body>
 
 </html>
-
-</section>
