@@ -1707,3 +1707,24 @@ flex-direction:column;
 }
 
 }
+.process-action {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.process-button {
+    display: inline-block;
+    padding: 14px 34px;
+    background: #d4af37;
+    color: #111;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+.process-button:hover {
+    background: #e3c04b;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
