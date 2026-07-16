@@ -76,6 +76,10 @@ function initHeader() {
 
     const header = document.querySelector("header");
 
+    const menu = document.getElementById("mainNav");
+
+    const toggle = document.getElementById("menuToggle");
+
     window.addEventListener("scroll", () => {
 
         if (window.scrollY > 80) {
@@ -89,6 +93,32 @@ function initHeader() {
         }
 
     });
+
+    if(toggle && menu){
+
+        toggle.addEventListener("click", () => {
+
+            menu.classList.toggle("open");
+
+            toggle.innerHTML = menu.classList.contains("open")
+                ? "✕"
+                : "☰";
+
+        });
+
+        menu.querySelectorAll("a").forEach(link => {
+
+            link.addEventListener("click", () => {
+
+                menu.classList.remove("open");
+
+                toggle.innerHTML = "☰";
+
+            });
+
+        });
+
+    }
 
 }
 
