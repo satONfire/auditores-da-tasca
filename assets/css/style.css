@@ -2053,35 +2053,27 @@ nav a{
 
     }
 
-    nav{
+nav{
 
-        position:absolute;
+    position:fixed;
 
-        top:100%;
+    top:70px;
 
-        left:0;
+    left:0;
 
-        right:0;
+    right:0;
 
-        display:none;
+    bottom:0;
 
-        flex-direction:column;
+    overflow-y:auto;
 
-        align-items:flex-start;
+    display:none;
 
-        gap:0;
+    flex-direction:column;
 
-        background:#111;
+    background:#111;
 
-        border-top:1px solid rgba(255,255,255,.08);
-
-        box-shadow:0 15px 35px rgba(0,0,0,.35);
-
-        padding:15px 0;
-
-        z-index:1001;
-
-    }
+}
 
     nav.open{
 
