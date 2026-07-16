@@ -2098,3 +2098,142 @@ nav{
     }
 
 }
+/* ==========================================================
+   HERO MOBILE
+========================================================== */
+
+@media (max-width:900px){
+
+    .hero{
+
+        min-height:85vh;
+
+        padding:120px 20px 80px;
+
+    }
+
+    .hero-content{
+
+        width:100%;
+
+        padding:0;
+
+    }
+
+    .hero-logo{
+
+        width:170px;
+
+        margin-bottom:30px;
+
+    }
+
+    .hero h1{
+
+        font-size:2.4rem;
+
+        line-height:1;
+
+        margin:0;
+
+    }
+
+    .hero h2{
+
+        font-size:1.2rem;
+
+        margin:25px 0 15px;
+
+    }
+
+    .hero p{
+
+        font-size:1rem;
+
+        margin-bottom:35px;
+
+    }
+
+    .buttons{
+
+        display:flex;
+
+        flex-direction:column;
+
+        gap:15px;
+
+        width:100%;
+
+    }
+
+    .buttons .btn{
+
+        width:100%;
+
+        text-align:center;
+
+    }
+
+}
+/* ==========================================================
+   GRELHAS MOBILE
+========================================================== */
+
+@media (max-width:900px){
+
+    .cards,
+    .news,
+    .members,
+    .stats .container,
+    .cert-grid,
+    .products-grid{
+
+        display:grid;
+
+        grid-template-columns:1fr;
+
+        gap:20px;
+
+    }
+
+    .card,
+    .member,
+    .product-card,
+    .stat{
+
+        width:100%;
+
+    }
+
+}
+/* ==========================================================
+   CERTIFICADO MOBILE
+========================================================== */
+
+@media (max-width:900px){
+
+    .certificate{
+
+        padding:25px;
+
+    }
+
+    .certificate-header h2{
+
+        font-size:1.8rem;
+
+    }
+
+    .certificate-body{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .badge-image{
+
+        width:140px;
+
+    }
+
+}
