@@ -206,9 +206,6 @@ async function gerarPDF() {
 
     const botao = document.getElementById("btnPDF");
     const elemento = document.getElementById("printArea");
-    const body = elemento.querySelector(".certificate-body");
-
-    let gridOriginal = "";
 
     botao.style.display = "none";
 
@@ -216,10 +213,10 @@ async function gerarPDF() {
     const maxWidthOriginal = elemento.style.maxWidth;
     const transformOriginal = elemento.style.transform;
     const marginOriginal = elemento.style.margin;
-    const paddingOriginal = elemento.style.padding;
 
     try {
 
+        const paddingOriginal = elemento.style.padding;
         elemento.style.width = "794px";
         elemento.style.maxWidth = "794px";
         elemento.style.margin = "0 auto";
@@ -228,27 +225,79 @@ async function gerarPDF() {
 
         await new Promise(resolve => setTimeout(resolve, 200));
 
+        const body = elemento.querySelector(".certificate-body");
+        const gridOriginal = body.style.gridTemplateColumns;
+
         if (body) {
 
-            gridOriginal = body.style.gridTemplateColumns;
             body.style.gridTemplateColumns = "1fr 1fr";
+        
+const canvas = await html2canvas(elemento, {
+    scale: 3,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    windowWidth: elemento.scrollWidth,
+    windowHeight: elemento.scrollHeight,
+    width: elemento.scrollWidth,
+    height: elemento.scrollHeight,
+    scrollX: 0,
+    scrollY: 0,
+    ignoreElements: (element) => element.classList.contains("no-print")
+});
+        console.log({
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    proporcao: canvas.height / canvas.width
+});
 
-        }
+        const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
 
-        const canvas = await html2canvas(elemento, {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            windowWidth: elemento.scrollWidth,
-            windowHeight: elemento.scrollHeight,
-            width: elemento.scrollWidth,
-            height: elemento.scrollHeight,
-            scrollX: 0,
-            scrollY: 0,
-            ignoreElements: (element) => element.classList.contains("no-print")
         });
+const margem = 10;
 
-        ...
+const larguraPagina = pdf.internal.pageSize.getWidth();
+const alturaPagina = pdf.internal.pageSize.getHeight();
+
+const larguraUtil = larguraPagina - margem * 2;
+const alturaUtil = alturaPagina - margem * 2;
+
+let largura = larguraUtil;
+let altura = canvas.height * largura / canvas.width;
+
+// Se ultrapassar a altura da folha,
+// reduz proporcionalmente para caber tudo.
+if (altura > alturaUtil) {
+
+    const escala = alturaUtil / altura;
+
+    altura *= escala;
+    largura *= escala;
+
+}
+
+// Reduz 4% para evitar cortes nas extremidades
+largura *= 0.96;
+altura *= 0.96;
+
+const posX = (larguraPagina - largura) / 2;
+const posY = (alturaPagina - altura) / 2;
+
+pdf.addImage(
+    canvas.toDataURL("image/png"),
+    "PNG",
+    posX,
+    posY,
+    largura,
+    altura
+);
+
+        const numero = document.getElementById("resNumero").textContent || "Certificado";
+
+        pdf.save(numero + ".pdf");
         
     } finally {
 
@@ -257,12 +306,7 @@ async function gerarPDF() {
         elemento.style.transform = transformOriginal;
         elemento.style.margin = marginOriginal;
         elemento.style.padding = paddingOriginal;
-
-        if (body) {
-
-            body.style.gridTemplateColumns = gridOriginal;
-
-        }
+        body.style.gridTemplateColumns = gridOriginal;
 
         botao.style.display = "block";
 
