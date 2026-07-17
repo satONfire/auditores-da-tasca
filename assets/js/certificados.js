@@ -25,6 +25,7 @@ function limparResultadoCertificado() {
     document.getElementById("resSituacao").textContent = "";
 
     const badge = document.getElementById("resBadge");
+
     badge.removeAttribute("src");
     badge.alt = "Badge da Certificação";
 
@@ -99,8 +100,10 @@ async function verificarCertificado() {
 
     if (!numero) {
         painel.style.display = "block";
+
         document.getElementById("resEstado").textContent =
             "⚠️ Introduza um número de certificação.";
+
         return;
     }
 
@@ -122,6 +125,7 @@ async function verificarCertificado() {
 
         definirEstado("-");
         document.title = "Certificação não encontrada | Auditores da Tasca";
+
         return;
     }
 
@@ -159,9 +163,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function gerarPDF() {
     const botao = document.getElementById("btnPDF");
     const elemento = document.getElementById("printArea");
-    const qrCanvas = document.querySelector("#qrCode canvas");
+    const contentorQR = document.getElementById("qrCode");
 
-    if (!elemento || !window.html2canvas || !window.jspdf) {
+    if (!elemento || !contentorQR || !window.html2canvas || !window.jspdf) {
         console.error("Bibliotecas ou área do certificado indisponíveis.");
         return;
     }
@@ -170,7 +174,7 @@ async function gerarPDF() {
     botao.style.display = "none";
 
     let imagemQR = null;
-    let qrCanvasOriginal = null;
+    let elementosQROriginais = [];
 
     const estilosOriginais = {
         width: elemento.style.width,
@@ -199,36 +203,45 @@ async function gerarPDF() {
         await new Promise(resolve => requestAnimationFrame(resolve));
 
         /*
-         * O QRCode.js cria normalmente um canvas. Convertemo-lo para PNG
-         * durante a captura, pois a imagem é mais fiável no html2canvas.
+         * QRCode.js pode criar canvas, imagem ou tabela, conforme o browser.
+         * Guardamos os elementos atuais e ocultamo-los antes de inserir
+         * uma única versão PNG para a captura do html2canvas.
          */
-        if (qrCanvas) {
-            try {
-                imagemQR = document.createElement("img");
-                imagemQR.src = qrCanvas.toDataURL("image/png");
-                imagemQR.alt = "QR Code da Certificação";
+        elementosQROriginais = Array.from(
+            contentorQR.querySelectorAll("canvas, img, table")
+        );
 
-                imagemQR.style.display = "block";
-                imagemQR.style.width = "140px";
-                imagemQR.style.height = "140px";
-                imagemQR.style.margin = "0 auto";
+        const canvasQR = contentorQR.querySelector("canvas");
 
-                qrCanvasOriginal = qrCanvas;
-                qrCanvasOriginal.style.display = "none";
-                qrCanvasOriginal.parentNode.appendChild(imagemQR);
+        if (canvasQR) {
+            imagemQR = document.createElement("img");
+            imagemQR.src = canvasQR.toDataURL("image/png");
+            imagemQR.alt = "QR Code da Certificação";
 
-                await new Promise(resolve => {
-                    imagemQR.onload = resolve;
-                    imagemQR.onerror = resolve;
-                });
-            } catch (erroQR) {
-                console.warn("Não foi possível converter o QR code para PNG.", erroQR);
-            }
+            Object.assign(imagemQR.style, {
+                display: "block",
+                width: "140px",
+                height: "140px",
+                margin: "0 auto"
+            });
+
+            await new Promise(resolve => {
+                imagemQR.onload = resolve;
+                imagemQR.onerror = resolve;
+            });
+        }
+
+        elementosQROriginais.forEach(elementoQR => {
+            elementoQR.style.display = "none";
+        });
+
+        if (imagemQR) {
+            contentorQR.appendChild(imagemQR);
         }
 
         /*
-         * Prepara o conteúdo para A4. A borda CSS é ocultada apenas nesta
-         * captura; a moldura dourada será desenhada pelo jsPDF.
+         * Formato fixo para captura, independentemente do dispositivo.
+         * A moldura CSS é ocultada: a moldura dourada é desenhada pelo jsPDF.
          */
         elemento.style.width = "794px";
         elemento.style.minWidth = "794px";
@@ -282,6 +295,7 @@ async function gerarPDF() {
 
         pdf.setDrawColor(212, 175, 55);
         pdf.setLineWidth(1.2);
+
         pdf.roundedRect(
             margemExterior,
             margemExterior,
@@ -301,6 +315,7 @@ async function gerarPDF() {
 
         if (alturaImagem > alturaUtil) {
             const fatorReducao = alturaUtil / alturaImagem;
+
             larguraImagem *= fatorReducao;
             alturaImagem *= fatorReducao;
         }
@@ -331,13 +346,17 @@ async function gerarPDF() {
         alert("Não foi possível gerar o certificado. Tente novamente.");
 
     } finally {
+        /*
+         * Remove apenas o PNG temporário e volta a mostrar os elementos
+         * QR originais criados pela biblioteca.
+         */
         if (imagemQR) {
             imagemQR.remove();
         }
 
-        if (qrCanvasOriginal) {
-            qrCanvasOriginal.style.display = "";
-        }
+        elementosQROriginais.forEach(elementoQR => {
+            elementoQR.style.display = "";
+        });
 
         elemento.style.width = estilosOriginais.width;
         elemento.style.minWidth = estilosOriginais.minWidth;
