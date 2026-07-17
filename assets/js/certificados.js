@@ -217,6 +217,7 @@ async function gerarPDF() {
             imagemQR = document.createElement("img");
             imagemQR.src = canvasQR.toDataURL("image/png");
             imagemQR.alt = "QR Code da Certificação";
+            imagemQR.className = "qr-pdf-temporario";
 
             Object.assign(imagemQR.style, {
                 display: "block",
@@ -345,37 +346,42 @@ async function gerarPDF() {
         console.error("Erro ao gerar o PDF:", erro);
         alert("Não foi possível gerar o certificado. Tente novamente.");
 
-    } finally {
-        /*
-         * Remove apenas o PNG temporário e volta a mostrar os elementos
-         * QR originais criados pela biblioteca.
-         */
-        if (imagemQR) {
-            imagemQR.remove();
-        }
+    } 
+finally {
+    /*
+     * Remove primeiro qualquer imagem PNG temporária do QR.
+     * A classe evita deixar duplicações no browser após exportar.
+     */
+    const imagensQRTemporarias = contentorQR.querySelectorAll(
+        "img.qr-pdf-temporario"
+    );
 
-        elementosQROriginais.forEach(elementoQR => {
-            elementoQR.style.display = "";
-        });
+    imagensQRTemporarias.forEach(imagem => imagem.remove());
 
-        elemento.style.width = estilosOriginais.width;
-        elemento.style.minWidth = estilosOriginais.minWidth;
-        elemento.style.maxWidth = estilosOriginais.maxWidth;
-        elemento.style.margin = estilosOriginais.margin;
-        elemento.style.padding = estilosOriginais.padding;
-        elemento.style.border = estilosOriginais.border;
-        elemento.style.borderRadius = estilosOriginais.borderRadius;
-        elemento.style.boxSizing = estilosOriginais.boxSizing;
-        elemento.style.transform = estilosOriginais.transform;
+    /*
+     * Volta a mostrar apenas o QR original criado pelo QRCode.js.
+     */
+    elementosQROriginais.forEach(elementoQR => {
+        elementoQR.style.display = "";
+    });
 
-        if (corpoCertificado && estilosCorpo) {
-            corpoCertificado.style.display = estilosCorpo.display;
-            corpoCertificado.style.gridTemplateColumns =
-                estilosCorpo.gridTemplateColumns;
-            corpoCertificado.style.gap = estilosCorpo.gap;
-        }
+    elemento.style.width = estilosOriginais.width;
+    elemento.style.minWidth = estilosOriginais.minWidth;
+    elemento.style.maxWidth = estilosOriginais.maxWidth;
+    elemento.style.margin = estilosOriginais.margin;
+    elemento.style.padding = estilosOriginais.padding;
+    elemento.style.border = estilosOriginais.border;
+    elemento.style.borderRadius = estilosOriginais.borderRadius;
+    elemento.style.boxSizing = estilosOriginais.boxSizing;
+    elemento.style.transform = estilosOriginais.transform;
 
-        botao.disabled = false;
-        botao.style.display = "block";
+    if (corpoCertificado && estilosCorpo) {
+        corpoCertificado.style.display = estilosCorpo.display;
+        corpoCertificado.style.gridTemplateColumns =
+            estilosCorpo.gridTemplateColumns;
+        corpoCertificado.style.gap = estilosCorpo.gap;
     }
+
+    botao.disabled = false;
+    botao.style.display = "block";
 }
