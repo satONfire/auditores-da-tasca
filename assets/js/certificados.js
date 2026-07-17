@@ -68,11 +68,30 @@ function gerarQRCode(numeroCertificado) {
 
     qr.innerHTML = "";
 
-    new QRCode(qr, {
-        text: `${window.location.origin}/verificar-certificacao.html?cert=${encodeURIComponent(numeroCertificado)}`,
-        width: 140,
-        height: 140
-    });
+new QRCode(qr, {
+    text:
+        window.location.origin +
+        "/verificar-certificacao.html?cert=" +
+        encodeURIComponent(resultado.numero),
+
+    width: 160,
+    height: 160,
+    correctLevel: QRCode.CorrectLevel.H
+});
+
+    const qrGerado = qr.querySelector("canvas, img");
+
+if (qrGerado) {
+    qrGerado.width = 160;
+    qrGerado.height = 160;
+
+    qrGerado.style.width = "160px";
+    qrGerado.style.height = "160px";
+    qrGerado.style.display = "block";
+    qrGerado.style.margin = "0 auto";
+    qrGerado.style.imageRendering = "pixelated";
+}
+    
 }
 
 async function verificarCertificado() {
