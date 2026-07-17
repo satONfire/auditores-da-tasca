@@ -155,6 +155,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function gerarPDF() {
     const botao = document.getElementById("btnPDF");
     const elemento = document.getElementById("printArea");
+    const contentorQR = document.getElementById("qrCode");
     const qrCanvas = document.querySelector("#qrCode canvas");
 
     if (!elemento || !window.html2canvas || !window.jspdf) {
@@ -180,6 +181,22 @@ async function gerarPDF() {
         transform: elemento.style.transform
     };
 
+    const estilosQROriginais = contentorQR
+        ? {
+            width: contentorQR.style.width,
+            height: contentorQR.style.height,
+            minWidth: contentorQR.style.minWidth,
+            minHeight: contentorQR.style.minHeight,
+            maxWidth: contentorQR.style.maxWidth,
+            maxHeight: contentorQR.style.maxHeight,
+            aspectRatio: contentorQR.style.aspectRatio,
+            overflow: contentorQR.style.overflow,
+            display: contentorQR.style.display,
+            alignItems: contentorQR.style.alignItems,
+            justifyContent: contentorQR.style.justifyContent
+        }
+        : null;
+
     const corpoCertificado = elemento.querySelector(".certificate-body");
 
     const estilosCorpo = corpoCertificado
@@ -192,15 +209,14 @@ async function gerarPDF() {
 
     try {
         /*
-         * Aguarda duas atualizações visuais do browser.
-         * É importante para o QR code estar concluído no telemóvel.
+         * Aguarda que o browser conclua o desenho do QR code.
          */
         await new Promise(resolve => requestAnimationFrame(resolve));
         await new Promise(resolve => requestAnimationFrame(resolve));
 
         /*
-         * Transforma o QR code (canvas) numa imagem PNG temporária.
-         * Isto torna a captura consistente em PC, Android e iPhone.
+         * Converte o QR code baseado em canvas numa imagem PNG temporária.
+         * O PNG é mais fiável no html2canvas, sobretudo em telemóvel.
          */
         if (qrCanvas) {
             try {
@@ -211,7 +227,14 @@ async function gerarPDF() {
                 Object.assign(imagemQR.style, {
                     display: "block",
                     width: "140px",
+                    minWidth: "140px",
+                    maxWidth: "140px",
                     height: "140px",
+                    minHeight: "140px",
+                    maxHeight: "140px",
+                    aspectRatio: "1 / 1",
+                    objectFit: "contain",
+                    flex: "0 0 140px",
                     margin: "0 auto"
                 });
 
@@ -224,13 +247,36 @@ async function gerarPDF() {
                     imagemQR.onerror = resolve;
                 });
             } catch (erroQR) {
-                console.warn("QR code não pôde ser convertido para imagem.", erroQR);
+                console.warn(
+                    "Não foi possível converter o QR code para imagem.",
+                    erroQR
+                );
             }
         }
 
         /*
-         * Layout estável para exportação. Não criamos elementos fora do ecrã.
-         * A moldura CSS é removida só durante a captura.
+         * Bloqueia o contentor do QR code num quadrado real.
+         * Esta é a correção para o QR retangular durante a exportação.
+         */
+        if (contentorQR) {
+            Object.assign(contentorQR.style, {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "160px",
+                minWidth: "160px",
+                maxWidth: "160px",
+                height: "160px",
+                minHeight: "160px",
+                maxHeight: "160px",
+                aspectRatio: "1 / 1",
+                overflow: "hidden"
+            });
+        }
+
+        /*
+         * Layout de exportação: remove o aro CSS, pois será desenhado
+         * diretamente no PDF pelo jsPDF. Não cria elementos fora do ecrã.
          */
         elemento.style.width = "794px";
         elemento.style.minWidth = "794px";
@@ -243,8 +289,8 @@ async function gerarPDF() {
         elemento.style.transform = "none";
 
         /*
-         * Mantém os seis campos numa grelha 2x3 durante a exportação,
-         * mesmo que a operação seja iniciada no telemóvel.
+         * Mantém o certificado em duas colunas na exportação,
+         * inclusive quando a geração é feita em telemóvel.
          */
         if (corpoCertificado) {
             corpoCertificado.style.display = "grid";
@@ -261,11 +307,6 @@ async function gerarPDF() {
         const canvas = await html2canvas(elemento, {
             backgroundColor: "#ffffff",
             useCORS: true,
-
-            /*
-             * 1.5 é um compromisso entre qualidade e fiabilidade
-             * nos limites de canvas de dispositivos móveis.
-             */
             scale: 1.5,
 
             width: larguraCaptura,
@@ -291,13 +332,13 @@ async function gerarPDF() {
             compress: true
         });
 
-        /*
-         * Moldura vetorial: não depende de CSS, viewport ou html2canvas.
-         * Dimensões de uma A4: 210 x 297 mm.
-         */
-        const margemExterior = 8;
         const larguraPagina = pdf.internal.pageSize.getWidth();
         const alturaPagina = pdf.internal.pageSize.getHeight();
+
+        /*
+         * Aro dourado vetorial, completo e independente do html2canvas.
+         */
+        const margemExterior = 8;
 
         pdf.setDrawColor(212, 175, 55);
         pdf.setLineWidth(1.2);
@@ -313,7 +354,7 @@ async function gerarPDF() {
         );
 
         /*
-         * Área reservada dentro do aro: 15 mm em cada lado.
+         * Área útil, deixada dentro do aro dourado.
          */
         const margemConteudo = 15;
         const larguraUtil = larguraPagina - (margemConteudo * 2);
@@ -322,9 +363,6 @@ async function gerarPDF() {
         let larguraImagem = larguraUtil;
         let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
 
-        /*
-         * Nunca corta o conteúdo: reduz proporcionalmente, se necessário.
-         */
         if (alturaImagem > alturaUtil) {
             const fatorReducao = alturaUtil / alturaImagem;
 
@@ -359,7 +397,7 @@ async function gerarPDF() {
 
     } finally {
         /*
-         * Remove a imagem QR temporária e volta a mostrar o canvas original.
+         * Remove o PNG temporário e restaura o QR canvas original.
          */
         if (imagemQR) {
             imagemQR.remove();
@@ -370,7 +408,7 @@ async function gerarPDF() {
         }
 
         /*
-         * Restaura o certificado visível exatamente como era.
+         * Restaura o certificado do browser.
          */
         elemento.style.width = estilosOriginais.width;
         elemento.style.minWidth = estilosOriginais.minWidth;
@@ -381,6 +419,24 @@ async function gerarPDF() {
         elemento.style.borderRadius = estilosOriginais.borderRadius;
         elemento.style.boxSizing = estilosOriginais.boxSizing;
         elemento.style.transform = estilosOriginais.transform;
+
+        /*
+         * Restaura o contentor do QR exatamente ao estado anterior.
+         */
+        if (contentorQR && estilosQROriginais) {
+            contentorQR.style.width = estilosQROriginais.width;
+            contentorQR.style.height = estilosQROriginais.height;
+            contentorQR.style.minWidth = estilosQROriginais.minWidth;
+            contentorQR.style.minHeight = estilosQROriginais.minHeight;
+            contentorQR.style.maxWidth = estilosQROriginais.maxWidth;
+            contentorQR.style.maxHeight = estilosQROriginais.maxHeight;
+            contentorQR.style.aspectRatio = estilosQROriginais.aspectRatio;
+            contentorQR.style.overflow = estilosQROriginais.overflow;
+            contentorQR.style.display = estilosQROriginais.display;
+            contentorQR.style.alignItems = estilosQROriginais.alignItems;
+            contentorQR.style.justifyContent =
+                estilosQROriginais.justifyContent;
+        }
 
         if (corpoCertificado && estilosCorpo) {
             corpoCertificado.style.display = estilosCorpo.display;
