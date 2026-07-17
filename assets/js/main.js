@@ -76,10 +76,6 @@ function initHeader() {
 
     const header = document.querySelector("header");
 
-    const menu = document.getElementById("mainNav");
-
-    const toggle = document.getElementById("menuToggle");
-
     window.addEventListener("scroll", () => {
 
         if (window.scrollY > 80) {
@@ -93,7 +89,7 @@ function initHeader() {
         }
 
     });
-
+  }
 /* =====================================================
    REVEAL
 ===================================================== */
