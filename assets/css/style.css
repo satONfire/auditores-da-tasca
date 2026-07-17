@@ -1214,14 +1214,3 @@ button {
     flex-direction: column;
   }
 
-}
-/* Mantém o QR code sempre quadrado no browser e na exportação PDF */
-.certificate-qr canvas,
-.certificate-qr img {
-    display: block;
-    width: 140px !important;
-    height: 140px !important;
-    max-width: none !important;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto;
-}
