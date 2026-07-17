@@ -35,11 +35,11 @@ function definirBadge(nivel) {
     const badge = document.getElementById("resBadge");
 
     const badgesPorNivel = {
-        "Certified": "assets/img/certified.png",
-        "Senior": "assets/img/senior.png",
-        "Elite": "assets/img/elite.png",
+        Certified: "assets/img/certified.png",
+        Senior: "assets/img/senior.png",
+        Elite: "assets/img/elite.png",
         "Elite Auditor": "assets/img/elite.png",
-        "Legend": "assets/img/legend.png"
+        Legend: "assets/img/legend.png"
     };
 
     badge.src = badgesPorNivel[nivel] || "";
@@ -56,41 +56,30 @@ function definirEstado(estadoCertificado) {
 
     const coresPorEstado = {
         "Válido": "#32c36c",
-        "Expirado": "#ffb400",
-        "Revogado": "#ff4d4d"
+        Expirado: "#ffb400",
+        Revogado: "#ff4d4d"
     };
 
     estado.style.color = coresPorEstado[estadoCertificado] || "#ffffff";
 }
 
 function gerarQRCode(numeroCertificado) {
-   const qr = document.getElementById("qrCode");
+    const qr = document.getElementById("qrCode");
 
-qr.innerHTML = "";
+    qr.innerHTML = "";
 
-new QRCode(qr, {
-    text:
-        window.location.origin +
-        "/verificar-certificacao.html?cert=" +
-        encodeURIComponent(resultado.numero),
+    const urlCertificado =
+        `${window.location.origin}/verificar-certificacao.html?cert=` +
+        encodeURIComponent(numeroCertificado);
 
-    width: 140,
-    height: 140
-});
-
-    const qrGerado = qr.querySelector("canvas, img");
-
-if (qrGerado) {
-    qrGerado.width = 160;
-    qrGerado.height = 160;
-
-    qrGerado.style.width = "160px";
-    qrGerado.style.height = "160px";
-    qrGerado.style.display = "block";
-    qrGerado.style.margin = "0 auto";
-    qrGerado.style.imageRendering = "pixelated";
-}
-    
+    new QRCode(qr, {
+        text: urlCertificado,
+        width: 140,
+        height: 140,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+    });
 }
 
 async function verificarCertificado() {
@@ -106,7 +95,6 @@ async function verificarCertificado() {
 
     const painel = document.getElementById("resultadoCertificado");
 
-    // Elimina imediatamente QR code, badge e dados da pesquisa anterior.
     limparResultadoCertificado();
 
     if (!numero) {
@@ -134,7 +122,6 @@ async function verificarCertificado() {
 
         definirEstado("-");
         document.title = "Certificação não encontrada | Auditores da Tasca";
-
         return;
     }
 
@@ -155,8 +142,7 @@ async function verificarCertificado() {
 }
 
 function obterParametro(nome) {
-    const parametros = new URLSearchParams(window.location.search);
-    return parametros.get(nome);
+    return new URLSearchParams(window.location.search).get(nome);
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -209,16 +195,12 @@ async function gerarPDF() {
         : null;
 
     try {
-        /*
-         * Aguarda duas atualizações visuais do browser.
-         * É importante para o QR code estar concluído no telemóvel.
-         */
         await new Promise(resolve => requestAnimationFrame(resolve));
         await new Promise(resolve => requestAnimationFrame(resolve));
 
         /*
-         * Transforma o QR code (canvas) numa imagem PNG temporária.
-         * Isto torna a captura consistente em PC, Android e iPhone.
+         * O QRCode.js cria normalmente um canvas. Convertemo-lo para PNG
+         * durante a captura, pois a imagem é mais fiável no html2canvas.
          */
         if (qrCanvas) {
             try {
@@ -226,12 +208,10 @@ async function gerarPDF() {
                 imagemQR.src = qrCanvas.toDataURL("image/png");
                 imagemQR.alt = "QR Code da Certificação";
 
-                Object.assign(imagemQR.style, {
-                    display: "block",
-                    width: "140px",
-                    height: "140px",
-                    margin: "0 auto"
-                });
+                imagemQR.style.display = "block";
+                imagemQR.style.width = "140px";
+                imagemQR.style.height = "140px";
+                imagemQR.style.margin = "0 auto";
 
                 qrCanvasOriginal = qrCanvas;
                 qrCanvasOriginal.style.display = "none";
@@ -242,13 +222,13 @@ async function gerarPDF() {
                     imagemQR.onerror = resolve;
                 });
             } catch (erroQR) {
-                console.warn("QR code não pôde ser convertido para imagem.", erroQR);
+                console.warn("Não foi possível converter o QR code para PNG.", erroQR);
             }
         }
 
         /*
-         * Layout estável para exportação. Não criamos elementos fora do ecrã.
-         * A moldura CSS é removida só durante a captura.
+         * Prepara o conteúdo para A4. A borda CSS é ocultada apenas nesta
+         * captura; a moldura dourada será desenhada pelo jsPDF.
          */
         elemento.style.width = "794px";
         elemento.style.minWidth = "794px";
@@ -260,10 +240,6 @@ async function gerarPDF() {
         elemento.style.borderRadius = "0";
         elemento.style.transform = "none";
 
-        /*
-         * Mantém os seis campos numa grelha 2x3 durante a exportação,
-         * mesmo que a operação seja iniciada no telemóvel.
-         */
         if (corpoCertificado) {
             corpoCertificado.style.display = "grid";
             corpoCertificado.style.gridTemplateColumns =
@@ -279,24 +255,14 @@ async function gerarPDF() {
         const canvas = await html2canvas(elemento, {
             backgroundColor: "#ffffff",
             useCORS: true,
-
-            /*
-             * 1.5 é um compromisso entre qualidade e fiabilidade
-             * nos limites de canvas de dispositivos móveis.
-             */
             scale: 1.5,
-
             width: larguraCaptura,
             height: alturaCaptura,
             windowWidth: larguraCaptura,
             windowHeight: alturaCaptura,
-
             scrollX: 0,
             scrollY: -window.scrollY,
-
-            ignoreElements: item =>
-                item.classList.contains("no-print"),
-
+            ignoreElements: item => item.classList.contains("no-print"),
             logging: false
         });
 
@@ -309,17 +275,13 @@ async function gerarPDF() {
             compress: true
         });
 
-        /*
-         * Moldura vetorial: não depende de CSS, viewport ou html2canvas.
-         * Dimensões de uma A4: 210 x 297 mm.
-         */
-        const margemExterior = 8;
         const larguraPagina = pdf.internal.pageSize.getWidth();
         const alturaPagina = pdf.internal.pageSize.getHeight();
 
+        const margemExterior = 8;
+
         pdf.setDrawColor(212, 175, 55);
         pdf.setLineWidth(1.2);
-
         pdf.roundedRect(
             margemExterior,
             margemExterior,
@@ -330,9 +292,6 @@ async function gerarPDF() {
             "S"
         );
 
-        /*
-         * Área reservada dentro do aro: 15 mm em cada lado.
-         */
         const margemConteudo = 15;
         const larguraUtil = larguraPagina - (margemConteudo * 2);
         const alturaUtil = alturaPagina - (margemConteudo * 2);
@@ -340,12 +299,8 @@ async function gerarPDF() {
         let larguraImagem = larguraUtil;
         let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
 
-        /*
-         * Nunca corta o conteúdo: reduz proporcionalmente, se necessário.
-         */
         if (alturaImagem > alturaUtil) {
             const fatorReducao = alturaUtil / alturaImagem;
-
             larguraImagem *= fatorReducao;
             alturaImagem *= fatorReducao;
         }
@@ -376,9 +331,6 @@ async function gerarPDF() {
         alert("Não foi possível gerar o certificado. Tente novamente.");
 
     } finally {
-        /*
-         * Remove a imagem QR temporária e volta a mostrar o canvas original.
-         */
         if (imagemQR) {
             imagemQR.remove();
         }
@@ -387,9 +339,6 @@ async function gerarPDF() {
             qrCanvasOriginal.style.display = "";
         }
 
-        /*
-         * Restaura o certificado visível exatamente como era.
-         */
         elemento.style.width = estilosOriginais.width;
         elemento.style.minWidth = estilosOriginais.minWidth;
         elemento.style.maxWidth = estilosOriginais.maxWidth;
