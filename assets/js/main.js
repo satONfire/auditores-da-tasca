@@ -1,71 +1,121 @@
+"use strict";
+
 /* =====================================================
    AUDITORES DA TASCA
    MAIN.JS
 ===================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+const PREFERE_MENOS_MOVIMENTO = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+).matches;
 
+const COMPORTAMENTO_SCROLL = PREFERE_MENOS_MOVIMENTO ? "auto" : "smooth";
+
+document.addEventListener("DOMContentLoaded", () => {
     initCounters();
     initReveal();
     initHeader();
     initBackToTop();
     initSmoothScroll();
-
+    initEasterEgg();
+    initAnoFooter();
 });
+
+/* =====================================================
+   UTILITÁRIOS
+===================================================== */
+
+function animarComScroll(callback) {
+    let agendado = false;
+
+    function executar() {
+        if (!agendado) {
+            window.requestAnimationFrame(() => {
+                callback();
+                agendado = false;
+            });
+
+            agendado = true;
+        }
+    }
+
+    window.addEventListener("scroll", executar, { passive: true });
+    executar();
+}
+
+function formatarNumero(valor) {
+    return Math.round(valor).toLocaleString("pt-PT");
+}
 
 /* =====================================================
    CONTADORES
 ===================================================== */
 
 function initCounters() {
-
     const counters = document.querySelectorAll(".counter");
 
-    const observer = new IntersectionObserver(entries => {
+    if (!counters.length) {
+        return;
+    }
 
-        entries.forEach(entry => {
+    if (!("IntersectionObserver" in window)) {
+        counters.forEach(counter => {
+            const alvo = Number(counter.dataset.target);
 
-            if (!entry.isIntersecting) return;
-
-            const counter = entry.target;
-
-            const target = parseInt(counter.dataset.target);
-
-            let value = 0;
-
-            const speed = target / 150;
-
-            function update() {
-
-                value += speed;
-
-                if (value >= target) {
-
-                    counter.innerText = target.toLocaleString("pt-PT");
-                    return;
-
-                }
-
-                counter.innerText = Math.floor(value).toLocaleString("pt-PT");
-
-                requestAnimationFrame(update);
-
-            }
-
-            update();
-
-            observer.unobserve(counter);
-
+            counter.textContent = Number.isFinite(alvo)
+                ? formatarNumero(alvo)
+                : "0";
         });
 
+        return;
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            const counter = entry.target;
+            const alvo = Number(counter.dataset.target);
+
+            if (!Number.isFinite(alvo)) {
+                counter.textContent = "0";
+                observer.unobserve(counter);
+                return;
+            }
+
+            if (PREFERE_MENOS_MOVIMENTO) {
+                counter.textContent = formatarNumero(alvo);
+                observer.unobserve(counter);
+                return;
+            }
+
+            const inicio = performance.now();
+            const duracao = 1200;
+
+            function atualizarContador(agora) {
+                const progresso = Math.min((agora - inicio) / duracao, 1);
+                const progressoSuave = 1 - Math.pow(1 - progresso, 3);
+                const valorAtual = alvo * progressoSuave;
+
+                counter.textContent = formatarNumero(valorAtual);
+
+                if (progresso < 1) {
+                    window.requestAnimationFrame(atualizarContador);
+                } else {
+                    counter.textContent = formatarNumero(alvo);
+                }
+            }
+
+            window.requestAnimationFrame(atualizarContador);
+            observer.unobserve(counter);
+        });
     }, {
-
-        threshold:0.5
-
+        threshold: 0.35
     });
 
     counters.forEach(counter => observer.observe(counter));
-
 }
 
 /* =====================================================
@@ -73,55 +123,48 @@ function initCounters() {
 ===================================================== */
 
 function initHeader() {
-
     const header = document.querySelector("header");
 
-    window.addEventListener("scroll", () => {
+    if (!header) {
+        return;
+    }
 
-        if (window.scrollY > 80) {
-
-            header.classList.add("scrolled");
-
-        } else {
-
-            header.classList.remove("scrolled");
-
-        }
-
+    animarComScroll(() => {
+        header.classList.toggle("scrolled", window.scrollY > 80);
     });
-  }
+}
+
 /* =====================================================
    REVEAL
 ===================================================== */
 
 function initReveal() {
-
-    const elements = document.querySelectorAll(
-
-        ".card,.stat,.news div,.member"
-
+    const elementos = document.querySelectorAll(
+        ".card, .stat, .news div, .member"
     );
 
+    if (!elementos.length) {
+        return;
+    }
+
+    if (PREFERE_MENOS_MOVIMENTO || !("IntersectionObserver" in window)) {
+        elementos.forEach(elemento => elemento.classList.add("show"));
+        return;
+    }
+
     const observer = new IntersectionObserver(entries => {
-
         entries.forEach(entry => {
-
             if (entry.isIntersecting) {
-
                 entry.target.classList.add("show");
-
+                observer.unobserve(entry.target);
             }
-
         });
-
     }, {
-
-        threshold:0.15
-
+        threshold: 0.15,
+        rootMargin: "0px 0px -20px 0px"
     });
 
-    elements.forEach(el => observer.observe(el));
-
+    elementos.forEach(elemento => observer.observe(elemento));
 }
 
 /* =====================================================
@@ -129,41 +172,30 @@ function initReveal() {
 ===================================================== */
 
 function initBackToTop() {
+    if (document.getElementById("backToTop")) {
+        return;
+    }
 
     const button = document.createElement("button");
 
     button.id = "backToTop";
-
-    button.innerHTML = "▲";
+    button.type = "button";
+    button.innerHTML = "&#9650;";
+    button.setAttribute("aria-label", "Voltar ao topo da página");
+    button.setAttribute("title", "Voltar ao topo");
 
     document.body.appendChild(button);
 
-    window.addEventListener("scroll", () => {
-
-        if (window.scrollY > 400) {
-
-            button.classList.add("show");
-
-        } else {
-
-            button.classList.remove("show");
-
-        }
-
+    animarComScroll(() => {
+        button.classList.toggle("show", window.scrollY > 400);
     });
 
     button.addEventListener("click", () => {
-
         window.scrollTo({
-
-            top:0,
-
-            behavior:"smooth"
-
+            top: 0,
+            behavior: COMPORTAMENTO_SCROLL
         });
-
     });
-
 }
 
 /* =====================================================
@@ -171,107 +203,121 @@ function initBackToTop() {
 ===================================================== */
 
 function initSmoothScroll() {
-
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", event => {
+            const destinoId = anchor.getAttribute("href");
 
-        anchor.addEventListener("click", function(e){
+            if (!destinoId || destinoId === "#") {
+                return;
+            }
 
-            const target = document.querySelector(this.getAttribute("href"));
+            let destino;
 
-            if(!target) return;
+            try {
+                destino = document.querySelector(destinoId);
+            } catch {
+                return;
+            }
 
-            e.preventDefault();
+            if (!destino) {
+                return;
+            }
 
-            target.scrollIntoView({
+            event.preventDefault();
 
-                behavior:"smooth"
-
+            destino.scrollIntoView({
+                behavior: COMPORTAMENTO_SCROLL,
+                block: "start"
             });
 
+            if (!destino.hasAttribute("tabindex")) {
+                destino.setAttribute("tabindex", "-1");
+            }
+
+            destino.focus({ preventScroll: true });
         });
-
     });
-
 }
 
 /* =====================================================
    EASTER EGG
 ===================================================== */
 
-let clicks = 0;
+function initEasterEgg() {
+    const heroLogo = document.querySelector(".hero-logo");
 
-const heroLogo = document.querySelector(".hero-logo");
+    if (!heroLogo) {
+        return;
+    }
 
-if(heroLogo){
+    let clicks = 0;
+    let temporizador = null;
 
-    heroLogo.addEventListener("click",()=>{
+    heroLogo.addEventListener("click", () => {
+        clicks += 1;
 
-        clicks++;
+        window.clearTimeout(temporizador);
 
-        if(clicks===5){
+        temporizador = window.setTimeout(() => {
+            clicks = 0;
+        }, 2500);
 
-            alert(
-`🏅 CERTIFICAÇÃO PREMIUM
-
-Parabéns!
-
-Acaba de desbloquear o nível
-
-MESTRE DA TASCA
-
-Está oficialmente autorizado
-a pedir mais uma rodada. 🍺`
-            );
-
-            clicks=0;
-
+        if (clicks !== 5) {
+            return;
         }
 
-    });
+        window.clearTimeout(temporizador);
+        clicks = 0;
 
+        alert(
+            "🏅 CERTIFICAÇÃO PREMIUM\n\n" +
+            "Parabéns!\n\n" +
+            "Acaba de desbloquear o nível\n\n" +
+            "MESTRE DA TASCA\n\n" +
+            "Está oficialmente autorizado\n" +
+            "a pedir mais uma rodada. 🍺"
+        );
+    });
 }
 
 /* =====================================================
    DATA NO FOOTER
 ===================================================== */
 
-const year = new Date().getFullYear();
+function initAnoFooter() {
+    const ano = new Date().getFullYear();
 
-document.querySelectorAll(".year").forEach(el=>{
-
-    el.innerHTML = year;
-
-});
-/* ==================================================
-   CERTIFICAÇÕES ATA
-================================================== */
-
-function toggleCert(id){
-
-    const panels=document.querySelectorAll(".cert-panel");
-
-    panels.forEach(panel=>{
-
-        if(panel.id!==id){
-
-            panel.classList.remove("active");
-
-        }
-
+    document.querySelectorAll(".year").forEach(elemento => {
+        elemento.textContent = ano;
     });
+}
 
-    document.getElementById(id).classList.toggle("active");
+/* =====================================================
+   CERTIFICAÇÕES ATA
+===================================================== */
 
-    if(document.getElementById(id).classList.contains("active")){
+function toggleCert(id) {
+    const painelSelecionado = document.getElementById(id);
 
-        document.getElementById(id).scrollIntoView({
-
-            behavior:"smooth",
-
-            block:"center"
-
-        });
-
+    if (!painelSelecionado) {
+        return;
     }
 
+    const paineis = document.querySelectorAll(".cert-panel");
+    const estavaAtivo = painelSelecionado.classList.contains("active");
+
+    paineis.forEach(painel => {
+        painel.classList.remove("active");
+    });
+
+    if (estavaAtivo) {
+        return;
+    }
+
+    painelSelecionado.classList.add("active");
+
+    painelSelecionado.scrollIntoView({
+        behavior: COMPORTAMENTO_SCROLL,
+        block: "center"
+    });
 }
