@@ -999,27 +999,33 @@ button {
 
 nav{
 
-    position:fixed;
+    display:flex;
 
-    top:80px;
+    flex-wrap:wrap;
 
-    left:0;
+    justify-content:center;
 
-    right:0;
+    align-items:center;
 
-    bottom:0;
+    gap:16px;
 
-    display:none;
+    width:100%;
 
-    flex-direction:column;
+    position:static;
 
-    background:#111;
+    background:transparent;
 
-    overflow-y:auto;
+    padding:0;
 
-    z-index:999;
+}
 
-    padding:20px 0;
+nav a{
+
+    display:block;
+
+    padding:6px 0;
+
+    font-size:14px;
 
 }
    .menu-toggle{
@@ -1027,12 +1033,6 @@ nav{
     display:block;
 
     z-index:1001;
-
-}
-
-nav.open{
-
-    display:flex;
 
 }
 
@@ -1076,15 +1076,6 @@ nav.open{
 
   .brand img {
     height: 42px;
-  }
-
-  .menu-toggle {
-    display: block;
-    z-index: 1002;
-  }
-
-  nav.open {
-    display: flex;
   }
 
   nav a {
