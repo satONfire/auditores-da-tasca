@@ -279,13 +279,18 @@ if (altura > alturaUtil) {
 
 }
 
+// Reduz 4% para evitar cortes nas extremidades
+largura *= 0.96;
+altura *= 0.96;
+
 const posX = (larguraPagina - largura) / 2;
+const posY = (alturaPagina - altura) / 2;
 
 pdf.addImage(
     canvas.toDataURL("image/png"),
     "PNG",
     posX,
-    margem,
+    posY,
     largura,
     altura
 );
