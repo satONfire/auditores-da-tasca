@@ -191,14 +191,15 @@ async function gerarPDF() {
 
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        const canvas = await html2canvas(elemento, {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            windowWidth: 794,
-            scrollX: 0,
-            scrollY: 0
-        });
+const canvas = await html2canvas(elemento, {
+    scale: 3,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    windowWidth: 794,
+    scrollX: 0,
+    scrollY: 0,
+    ignoreElements: (element) => element.classList.contains("no-print")
+});
 
         const { jsPDF } = window.jspdf;
 
