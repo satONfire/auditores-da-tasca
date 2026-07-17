@@ -211,23 +211,32 @@ const canvas = await html2canvas(elemento, {
 
 const margem = 10;
 
-const larguraPagina = pdf.internal.pageSize.getWidth() - margem * 2;
-const alturaPagina = pdf.internal.pageSize.getHeight() - margem * 2;
+const larguraPagina = pdf.internal.pageSize.getWidth();
+const alturaPagina = pdf.internal.pageSize.getHeight();
 
-let largura = larguraPagina;
+const larguraUtil = larguraPagina - margem * 2;
+const alturaUtil = alturaPagina - margem * 2;
+
+let largura = larguraUtil;
 let altura = canvas.height * largura / canvas.width;
 
-if (altura > alturaPagina) {
+// Se ultrapassar a altura da folha,
+// reduz proporcionalmente para caber tudo.
+if (altura > alturaUtil) {
 
-    altura = alturaPagina;
-    largura = canvas.width * altura / canvas.height;
+    const escala = alturaUtil / altura;
+
+    altura *= escala;
+    largura *= escala;
 
 }
 
+const posX = (larguraPagina - largura) / 2;
+
 pdf.addImage(
-    imgData,
+    canvas.toDataURL("image/png"),
     "PNG",
-    (pdf.internal.pageSize.getWidth() - largura) / 2,
+    posX,
     margem,
     largura,
     altura
