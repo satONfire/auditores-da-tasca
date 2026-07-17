@@ -173,22 +173,34 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function gerarPDF() {
 
     const botao = document.getElementById("btnPDF");
+    const elemento = document.getElementById("printArea");
 
     botao.style.display = "none";
 
+    const larguraOriginal = elemento.style.width;
+    const maxWidthOriginal = elemento.style.maxWidth;
+    const transformOriginal = elemento.style.transform;
+    const marginOriginal = elemento.style.margin;
+
     try {
 
-        const { jsPDF } = window.jspdf;
+        elemento.style.width = "794px";
+        elemento.style.maxWidth = "794px";
+        elemento.style.margin = "0 auto";
+        elemento.style.transform = "none";
 
-        const elemento = document.getElementById("printArea");
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const canvas = await html2canvas(elemento, {
-            scale: 2,
+            scale: 3,
             useCORS: true,
-            backgroundColor: "#ffffff"
+            backgroundColor: "#ffffff",
+            windowWidth: 794,
+            scrollX: 0,
+            scrollY: 0
         });
 
-        const imgData = canvas.toDataURL("image/png");
+        const { jsPDF } = window.jspdf;
 
         const pdf = new jsPDF({
             orientation: "portrait",
@@ -196,16 +208,29 @@ async function gerarPDF() {
             format: "a4"
         });
 
+        const margem = 10;
         const larguraPDF = 190;
         const alturaPDF = canvas.height * larguraPDF / canvas.width;
 
-        pdf.addImage(imgData, "PNG", 10, 10, larguraPDF, alturaPDF);
+        pdf.addImage(
+            canvas.toDataURL("image/png"),
+            "PNG",
+            margem,
+            margem,
+            larguraPDF,
+            alturaPDF
+        );
 
         const numero = document.getElementById("resNumero").textContent || "Certificado";
 
         pdf.save(numero + ".pdf");
 
     } finally {
+
+        elemento.style.width = larguraOriginal;
+        elemento.style.maxWidth = maxWidthOriginal;
+        elemento.style.transform = transformOriginal;
+        elemento.style.margin = marginOriginal;
 
         botao.style.display = "block";
 
