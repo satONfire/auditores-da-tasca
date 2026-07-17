@@ -156,29 +156,73 @@ async function gerarPDF() {
     const botao = document.getElementById("btnPDF");
     const elemento = document.getElementById("printArea");
 
+    if (!elemento) {
+        console.error("Área do certificado não encontrada.");
+        return;
+    }
+
+    botao.disabled = true;
     botao.style.display = "none";
 
-    const larguraOriginal = elemento.style.width;
-    const maxWidthOriginal = elemento.style.maxWidth;
-    const transformOriginal = elemento.style.transform;
-    const marginOriginal = elemento.style.margin;
-
     try {
-        elemento.style.width = "794px";
-        elemento.style.maxWidth = "794px";
-        elemento.style.margin = "0 auto";
-        elemento.style.transform = "none";
-
-        await new Promise(resolve => setTimeout(resolve, 200));
+        const larguraPDF = 794;
+        const escala = Math.min(window.devicePixelRatio || 1, 2);
 
         const canvas = await html2canvas(elemento, {
-            scale: 3,
-            useCORS: true,
             backgroundColor: "#ffffff",
-            windowWidth: 794,
+            useCORS: true,
+            scale: escala,
+
+            // Força uma área completa de captura.
+            width: elemento.scrollWidth,
+            height: elemento.scrollHeight,
+            windowWidth: larguraPDF,
+            windowHeight: elemento.scrollHeight,
+
             scrollX: 0,
-            scrollY: 0,
-            ignoreElements: element => element.classList.contains("no-print")
+            scrollY: -window.scrollY,
+
+            ignoreElements: elementoAtual =>
+                elementoAtual.classList.contains("no-print"),
+
+            // Modifica somente a cópia interna usada pelo html2canvas.
+            onclone: documentoClonado => {
+                const certificado = documentoClonado.getElementById("printArea");
+                const botaoClonado = documentoClonado.getElementById("btnPDF");
+
+                if (certificado) {
+                    certificado.style.width = `${larguraPDF}px`;
+                    certificado.style.maxWidth = `${larguraPDF}px`;
+                    certificado.style.minWidth = `${larguraPDF}px`;
+                    certificado.style.margin = "0";
+                    certificado.style.boxSizing = "border-box";
+                }
+
+                if (botaoClonado) {
+                    botaoClonado.style.display = "none";
+                }
+
+                const estilo = documentoClonado.createElement("style");
+
+                estilo.textContent = `
+                    #printArea {
+                        width: ${larguraPDF}px !important;
+                        max-width: ${larguraPDF}px !important;
+                        min-width: ${larguraPDF}px !important;
+                        box-sizing: border-box !important;
+                    }
+
+                    #printArea .certificate-body {
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                    }
+
+                    #printArea .no-print {
+                        display: none !important;
+                    }
+                `;
+
+                documentoClonado.head.appendChild(estilo);
+            }
         });
 
         const { jsPDF } = window.jspdf;
@@ -186,7 +230,8 @@ async function gerarPDF() {
         const pdf = new jsPDF({
             orientation: "portrait",
             unit: "mm",
-            format: "a4"
+            format: "a4",
+            compress: true
         });
 
         const margem = 10;
@@ -195,33 +240,38 @@ async function gerarPDF() {
         const larguraUtil = larguraPagina - margem * 2;
         const alturaUtil = alturaPagina - margem * 2;
 
-        let largura = larguraUtil;
-        let altura = (canvas.height * largura) / canvas.width;
+        let larguraImagem = larguraUtil;
+        let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
 
-        if (altura > alturaUtil) {
-            const escala = alturaUtil / altura;
-            altura *= escala;
-            largura *= escala;
+        if (alturaImagem > alturaUtil) {
+            const fator = alturaUtil / alturaImagem;
+            larguraImagem *= fator;
+            alturaImagem *= fator;
         }
 
-        const posX = (larguraPagina - largura) / 2;
+        const posicaoX = (larguraPagina - larguraImagem) / 2;
 
         pdf.addImage(
-            canvas.toDataURL("image/png"),
-            "PNG",
-            posX,
+            canvas.toDataURL("image/jpeg", 0.95),
+            "JPEG",
+            posicaoX,
             margem,
-            largura,
-            altura
+            larguraImagem,
+            alturaImagem,
+            undefined,
+            "FAST"
         );
 
-        const numero = document.getElementById("resNumero").textContent || "Certificado";
+        const numero = document.getElementById("resNumero").textContent.trim() ||
+            "Certificado";
+
         pdf.save(`${numero}.pdf`);
+
+    } catch (erro) {
+        console.error("Erro ao gerar o PDF:", erro);
+        alert("Não foi possível gerar o certificado. Tente novamente.");
     } finally {
-        elemento.style.width = larguraOriginal;
-        elemento.style.maxWidth = maxWidthOriginal;
-        elemento.style.transform = transformOriginal;
-        elemento.style.margin = marginOriginal;
+        botao.disabled = false;
         botao.style.display = "block";
     }
 }
