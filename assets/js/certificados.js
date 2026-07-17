@@ -155,6 +155,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function gerarPDF() {
     const botao = document.getElementById("btnPDF");
     const elemento = document.getElementById("printArea");
+    const qrOriginal = document.querySelector("#qrCode canvas");
 
     if (!elemento || !window.html2canvas || !window.jspdf) {
         console.error("Não foi possível iniciar a geração do PDF.");
@@ -169,43 +170,66 @@ async function gerarPDF() {
         minWidth: elemento.style.minWidth,
         maxWidth: elemento.style.maxWidth,
         margin: elemento.style.margin,
-        padding: elemento.style.padding,
-        transform: elemento.style.transform,
-        boxSizing: elemento.style.boxSizing,
-        border: elemento.style.border,
-        borderRadius: elemento.style.borderRadius
+        transform: elemento.style.transform
     };
+
+    const corpoCertificado = elemento.querySelector(".certificate-body");
+
+    const estilosCorpo = corpoCertificado
+        ? {
+            display: corpoCertificado.style.display,
+            gridTemplateColumns: corpoCertificado.style.gridTemplateColumns,
+            gap: corpoCertificado.style.gap
+        }
+        : null;
 
     try {
         /*
-         * Layout fixo de exportação. O padding exterior branco dá espaço
-         * ao html2canvas para não cortar o aro nas extremidades.
+         * Aguarda a atualização visual do browser depois de esconder o botão.
          */
-        elemento.style.width = "874px";
-        elemento.style.minWidth = "874px";
-        elemento.style.maxWidth = "874px";
-        elemento.style.margin = "0 auto";
-        elemento.style.padding = "40px";
-        elemento.style.boxSizing = "border-box";
-        elemento.style.background = "#ffffff";
-        elemento.style.transform = "none";
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
         /*
-         * O aro deve ficar dentro do espaço de captura, não encostado
-         * ao limite exterior do elemento.
+         * No telemóvel, o QR code é normalmente um canvas. Convertemo-lo
+         * para imagem temporariamente para o html2canvas o capturar sempre.
          */
-        elemento.style.border = "8px solid #d4af37";
-        elemento.style.borderRadius = "15px";
+        let imagemQR = null;
 
-        const corpoCertificado = elemento.querySelector(".certificate-body");
+        if (qrOriginal) {
+            try {
+                imagemQR = document.createElement("img");
+                imagemQR.src = qrOriginal.toDataURL("image/png");
+                imagemQR.alt = "QR Code da Certificação";
 
-        const estilosCorpo = corpoCertificado
-            ? {
-                display: corpoCertificado.style.display,
-                gridTemplateColumns: corpoCertificado.style.gridTemplateColumns,
-                gap: corpoCertificado.style.gap
+                Object.assign(imagemQR.style, {
+                    width: "140px",
+                    height: "140px",
+                    display: "block",
+                    margin: "0 auto"
+                });
+
+                qrOriginal.style.display = "none";
+                qrOriginal.parentNode.appendChild(imagemQR);
+
+                await new Promise(resolve => {
+                    imagemQR.onload = resolve;
+                    imagemQR.onerror = resolve;
+                });
+            } catch (erroQR) {
+                console.warn("Não foi possível converter o QR code:", erroQR);
             }
-            : null;
+        }
+
+        /*
+         * Força a exportação a usar uma largura de desktop.
+         * Não é criada uma cópia fora do ecrã, evitando falhas de renderização.
+         */
+        elemento.style.width = "794px";
+        elemento.style.minWidth = "794px";
+        elemento.style.maxWidth = "794px";
+        elemento.style.margin = "0 auto";
+        elemento.style.transform = "none";
 
         if (corpoCertificado) {
             corpoCertificado.style.display = "grid";
@@ -214,19 +238,19 @@ async function gerarPDF() {
             corpoCertificado.style.gap = "25px";
         }
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 450));
 
         const largura = elemento.scrollWidth;
         const altura = elemento.scrollHeight;
 
-        /*
-         * Escala 1.5 evita ultrapassar limites de canvas no Safari/iOS.
-         * O html2canvas recomenda considerar os limites de dimensão
-         * e área do canvas, sobretudo em dispositivos móveis. 
-         */
         const canvas = await html2canvas(elemento, {
             backgroundColor: "#ffffff",
             useCORS: true,
+
+            /*
+             * Uma escala moderada evita PDFs vazios ou incompletos
+             * por limites de memória em Safari/iOS e Android.
+             */
             scale: 1.5,
 
             width: largura,
@@ -236,8 +260,6 @@ async function gerarPDF() {
 
             scrollX: 0,
             scrollY: -window.scrollY,
-            x: 0,
-            y: 0,
 
             ignoreElements: item =>
                 item.classList.contains("no-print"),
@@ -291,26 +313,51 @@ async function gerarPDF() {
 
         pdf.save(`${numero}.pdf`);
 
+        /*
+         * Restaura a versão canvas do QR code após exportar.
+         */
+        if (imagemQR) {
+            imagemQR.remove();
+        }
+
+        if (qrOriginal) {
+            qrOriginal.style.display = "";
+        }
+
     } catch (erro) {
         console.error("Erro ao gerar o PDF:", erro);
         alert("Não foi possível gerar o certificado. Tente novamente.");
 
     } finally {
+        /*
+         * Restaura sempre o layout normal, inclusive se houver erro.
+         */
         elemento.style.width = estilosOriginais.width;
         elemento.style.minWidth = estilosOriginais.minWidth;
         elemento.style.maxWidth = estilosOriginais.maxWidth;
         elemento.style.margin = estilosOriginais.margin;
-        elemento.style.padding = estilosOriginais.padding;
         elemento.style.transform = estilosOriginais.transform;
-        elemento.style.boxSizing = estilosOriginais.boxSizing;
-        elemento.style.border = estilosOriginais.border;
-        elemento.style.borderRadius = estilosOriginais.borderRadius;
 
         if (corpoCertificado && estilosCorpo) {
             corpoCertificado.style.display = estilosCorpo.display;
             corpoCertificado.style.gridTemplateColumns =
                 estilosCorpo.gridTemplateColumns;
             corpoCertificado.style.gap = estilosCorpo.gap;
+        }
+
+        /*
+         * Garante a limpeza do QR convertido mesmo em caso de erro.
+         */
+        const imagemQRTemporaria = document.querySelector(
+            "#qrCode img[alt='QR Code da Certificação']"
+        );
+
+        if (imagemQRTemporaria) {
+            imagemQRTemporaria.remove();
+        }
+
+        if (qrOriginal) {
+            qrOriginal.style.display = "";
         }
 
         botao.disabled = false;
