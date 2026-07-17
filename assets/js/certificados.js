@@ -219,6 +219,8 @@ async function gerarPDF() {
         elemento.style.width = "794px";
         elemento.style.maxWidth = "794px";
         elemento.style.margin = "0 auto";
+        const paddingOriginal = elemento.style.padding;
+        elemento.style.padding = "58px";
         elemento.style.transform = "none";
 
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -298,6 +300,7 @@ pdf.addImage(
         elemento.style.maxWidth = maxWidthOriginal;
         elemento.style.transform = transformOriginal;
         elemento.style.margin = marginOriginal;
+        elemento.style.padding = paddingOriginal;
         body.style.gridTemplateColumns = gridOriginal;
         botao.style.display = "block";
 
