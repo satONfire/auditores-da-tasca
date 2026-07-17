@@ -1,14 +1,41 @@
+"use strict";
+
 let certificados = [];
+
+const CERTIFICADOS_URL = "assets/data/certificados.json";
+const QR_TAMANHO = 140;
+const QR_CLASSE_TEMPORARIA = "qr-pdf-temporario";
+
+function obterElemento(id) {
+    return document.getElementById(id);
+}
+
+function formatarTexto(valor, alternativa = "-") {
+    const texto = String(valor ?? "").trim();
+    return texto || alternativa;
+}
+
+function esperarFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function esperar(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function carregarCertificados() {
     try {
-        const resposta = await fetch("assets/data/certificados.json");
+        const resposta = await fetch(CERTIFICADOS_URL, {
+            cache: "no-store"
+        });
 
         if (!resposta.ok) {
             throw new Error(`Erro HTTP: ${resposta.status}`);
         }
 
-        certificados = await resposta.json();
+        const dados = await resposta.json();
+
+        certificados = Array.isArray(dados) ? dados : [];
     } catch (erro) {
         console.error("Erro ao carregar certificados:", erro);
         certificados = [];
@@ -16,24 +43,44 @@ async function carregarCertificados() {
 }
 
 function limparResultadoCertificado() {
-    document.getElementById("resEstado").textContent = "";
-    document.getElementById("resNumero").textContent = "";
-    document.getElementById("resNome").textContent = "";
-    document.getElementById("resNivel").textContent = "";
-    document.getElementById("resEmissao").textContent = "";
-    document.getElementById("resValidade").textContent = "";
-    document.getElementById("resSituacao").textContent = "";
+    const campos = [
+        "resEstado",
+        "resNumero",
+        "resNome",
+        "resNivel",
+        "resEmissao",
+        "resValidade",
+        "resSituacao"
+    ];
 
-    const badge = document.getElementById("resBadge");
+    campos.forEach(id => {
+        const campo = obterElemento(id);
 
-    badge.removeAttribute("src");
-    badge.alt = "Badge da Certificação";
+        if (campo) {
+            campo.textContent = "";
+        }
+    });
 
-    document.getElementById("qrCode").innerHTML = "";
+    const badge = obterElemento("resBadge");
+
+    if (badge) {
+        badge.removeAttribute("src");
+        badge.alt = "Badge da Certificação";
+    }
+
+    const qr = obterElemento("qrCode");
+
+    if (qr) {
+        qr.innerHTML = "";
+    }
 }
 
 function definirBadge(nivel) {
-    const badge = document.getElementById("resBadge");
+    const badge = obterElemento("resBadge");
+
+    if (!badge) {
+        return;
+    }
 
     const badgesPorNivel = {
         Certified: "assets/img/certified.png",
@@ -43,17 +90,27 @@ function definirBadge(nivel) {
         Legend: "assets/img/legend.png"
     };
 
-    badge.src = badgesPorNivel[nivel] || "";
-    badge.alt = badge.src
-        ? `Badge de certificação: ${nivel}`
+    const origem = badgesPorNivel[nivel] || "";
+
+    if (origem) {
+        badge.src = origem;
+    } else {
+        badge.removeAttribute("src");
+    }
+
+    badge.alt = origem
+        ? `Badge de certificação: ${formatarTexto(nivel)}`
         : "Badge da Certificação";
 }
 
 function definirEstado(estadoCertificado) {
-    const estado = document.getElementById("resSituacao");
+    const estado = obterElemento("resSituacao");
 
-    estado.textContent = estadoCertificado || "-";
-    estado.style.fontWeight = "bold";
+    if (!estado) {
+        return;
+    }
+
+    const estadoTexto = formatarTexto(estadoCertificado);
 
     const coresPorEstado = {
         "Válido": "#32c36c",
@@ -61,26 +118,53 @@ function definirEstado(estadoCertificado) {
         Revogado: "#ff4d4d"
     };
 
-    estado.style.color = coresPorEstado[estadoCertificado] || "#ffffff";
+    estado.textContent = estadoTexto;
+    estado.style.fontWeight = "700";
+    estado.style.color = coresPorEstado[estadoTexto] || "#ffffff";
 }
 
 function gerarQRCode(numeroCertificado) {
-    const qr = document.getElementById("qrCode");
+    const qr = obterElemento("qrCode");
+
+    if (!qr) {
+        return;
+    }
 
     qr.innerHTML = "";
 
-    const urlCertificado =
-        `${window.location.origin}/verificar-certificacao.html?cert=` +
-        encodeURIComponent(numeroCertificado);
+    if (typeof QRCode === "undefined") {
+        console.error("A biblioteca QRCode não foi carregada.");
+        return;
+    }
+
+    const urlCertificado = new URL(
+        "verificar-certificacao.html",
+        window.location.href
+    );
+
+    urlCertificado.searchParams.set(
+        "cert",
+        formatarTexto(numeroCertificado, "")
+    );
 
     new QRCode(qr, {
-        text: urlCertificado,
-        width: 140,
-        height: 140,
+        text: urlCertificado.toString(),
+        width: QR_TAMANHO,
+        height: QR_TAMANHO,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.L
     });
+
+    /*
+     * Alguns browsers podem inserir mais do que um elemento de saída.
+     * Mantém apenas o primeiro elemento gerado para o QR visível no site.
+     */
+    const elementosGerados = Array.from(
+        qr.querySelectorAll("canvas, img, table")
+    );
+
+    elementosGerados.slice(1).forEach(elemento => elemento.remove());
 }
 
 async function verificarCertificado() {
@@ -88,40 +172,48 @@ async function verificarCertificado() {
         await carregarCertificados();
     }
 
-    const numero = document
-        .getElementById("certNumber")
-        .value
-        .trim()
-        .toUpperCase();
+    const campoNumero = obterElemento("certNumber");
+    const painel = obterElemento("resultadoCertificado");
 
-    const painel = document.getElementById("resultadoCertificado");
+    if (!campoNumero || !painel) {
+        console.error("Elementos de pesquisa de certificação indisponíveis.");
+        return;
+    }
+
+    const numero = campoNumero.value.trim().toUpperCase();
 
     limparResultadoCertificado();
+    painel.style.display = "block";
 
     if (!numero) {
-        painel.style.display = "block";
+        const estado = obterElemento("resEstado");
 
-        document.getElementById("resEstado").textContent =
-            "⚠️ Introduza um número de certificação.";
+        if (estado) {
+            estado.textContent = "⚠️ Introduza um número de certificação.";
+        }
 
         return;
     }
 
     const resultado = certificados.find(certificado =>
-        String(certificado.numero).trim().toUpperCase() === numero
+        formatarTexto(certificado.numero, "").toUpperCase() === numero
     );
 
-    painel.style.display = "block";
-
     if (!resultado) {
-        document.getElementById("resEstado").textContent =
-            "❌ Certificação não encontrada";
+        const estado = obterElemento("resEstado");
 
-        document.getElementById("resNumero").textContent = "-";
-        document.getElementById("resNome").textContent = "-";
-        document.getElementById("resNivel").textContent = "-";
-        document.getElementById("resEmissao").textContent = "-";
-        document.getElementById("resValidade").textContent = "-";
+        if (estado) {
+            estado.textContent = "❌ Certificação não encontrada";
+        }
+
+        ["resNumero", "resNome", "resNivel", "resEmissao", "resValidade"]
+            .forEach(id => {
+                const campo = obterElemento(id);
+
+                if (campo) {
+                    campo.textContent = "-";
+                }
+            });
 
         definirEstado("-");
         document.title = "Certificação não encontrada | Auditores da Tasca";
@@ -129,139 +221,263 @@ async function verificarCertificado() {
         return;
     }
 
-    document.getElementById("resEstado").textContent =
-        "✅ Certificação encontrada";
+    const estado = obterElemento("resEstado");
 
-    document.getElementById("resNumero").textContent = resultado.numero;
-    document.getElementById("resNome").textContent = resultado.nome;
-    document.getElementById("resNivel").textContent = resultado.nivel;
-    document.getElementById("resEmissao").textContent = resultado.emissao;
-    document.getElementById("resValidade").textContent = resultado.validade;
+    if (estado) {
+        estado.textContent = "✅ Certificação encontrada";
+    }
+
+    const valores = {
+        resNumero: resultado.numero,
+        resNome: resultado.nome,
+        resNivel: resultado.nivel,
+        resEmissao: resultado.emissao,
+        resValidade: resultado.validade
+    };
+
+    Object.entries(valores).forEach(([id, valor]) => {
+        const campo = obterElemento(id);
+
+        if (campo) {
+            campo.textContent = formatarTexto(valor);
+        }
+    });
 
     definirBadge(resultado.nivel);
     definirEstado(resultado.estado);
     gerarQRCode(resultado.numero);
 
-    document.title = `${resultado.numero} | Certificação ATA`;
+    document.title = `${formatarTexto(resultado.numero)} | Certificação ATA`;
 }
 
 function obterParametro(nome) {
     return new URLSearchParams(window.location.search).get(nome);
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-    await carregarCertificados();
+function obterQRTemporario(contentorQR) {
+    return contentorQR.querySelector(`img.${QR_CLASSE_TEMPORARIA}`);
+}
 
-    const cert = obterParametro("cert");
+function removerQRTemporario(contentorQR) {
+    contentorQR
+        .querySelectorAll(`img.${QR_CLASSE_TEMPORARIA}`)
+        .forEach(imagem => imagem.remove());
+}
 
-    if (cert) {
-        document.getElementById("certNumber").value = cert;
-        verificarCertificado();
+async function prepararQRParaPDF(contentorQR) {
+    removerQRTemporario(contentorQR);
+
+    const elementosOriginais = Array.from(
+        contentorQR.querySelectorAll("canvas, img, table")
+    );
+
+    const canvasQR = contentorQR.querySelector("canvas");
+
+    if (!canvasQR) {
+        return {
+            elementosOriginais,
+            imagemTemporaria: null
+        };
     }
-});
+
+    const imagemTemporaria = document.createElement("img");
+
+    imagemTemporaria.className = QR_CLASSE_TEMPORARIA;
+    imagemTemporaria.alt = "QR Code da Certificação";
+    imagemTemporaria.src = canvasQR.toDataURL("image/png");
+
+    Object.assign(imagemTemporaria.style, {
+        display: "block",
+        width: `${QR_TAMANHO}px`,
+        height: `${QR_TAMANHO}px`,
+        margin: "0 auto"
+    });
+
+    await new Promise(resolve => {
+        imagemTemporaria.onload = resolve;
+        imagemTemporaria.onerror = resolve;
+    });
+
+    /*
+     * Esconde os elementos nativos e mantém apenas a cópia PNG durante
+     * a captura. Assim o PDF recebe um QR único e legível.
+     */
+    elementosOriginais.forEach(elemento => {
+        elemento.style.display = "none";
+    });
+
+    contentorQR.appendChild(imagemTemporaria);
+
+    return {
+        elementosOriginais,
+        imagemTemporaria
+    };
+}
+
+function restaurarQRAposPDF(contentorQR, elementosOriginais) {
+    removerQRTemporario(contentorQR);
+
+    elementosOriginais.forEach(elemento => {
+        elemento.style.display = "";
+    });
+
+    /*
+     * Segurança extra: se algum browser criar duplicados após o processo,
+     * conserva apenas o primeiro QR original.
+     */
+    const elementosAtuais = Array.from(
+        contentorQR.querySelectorAll("canvas, img, table")
+    );
+
+    elementosAtuais.slice(1).forEach(elemento => elemento.remove());
+}
+
+function guardarEstilosCertificado(elemento, corpoCertificado) {
+    return {
+        certificado: {
+            width: elemento.style.width,
+            minWidth: elemento.style.minWidth,
+            maxWidth: elemento.style.maxWidth,
+            margin: elemento.style.margin,
+            padding: elemento.style.padding,
+            border: elemento.style.border,
+            borderRadius: elemento.style.borderRadius,
+            boxSizing: elemento.style.boxSizing,
+            transform: elemento.style.transform
+        },
+        corpo: corpoCertificado
+            ? {
+                display: corpoCertificado.style.display,
+                gridTemplateColumns: corpoCertificado.style.gridTemplateColumns,
+                gap: corpoCertificado.style.gap
+            }
+            : null
+    };
+}
+
+function aplicarLayoutPDF(elemento, corpoCertificado) {
+    Object.assign(elemento.style, {
+        width: "794px",
+        minWidth: "794px",
+        maxWidth: "794px",
+        margin: "0 auto",
+        padding: "40px",
+        boxSizing: "border-box",
+        border: "none",
+        borderRadius: "0",
+        transform: "none"
+    });
+
+    if (corpoCertificado) {
+        Object.assign(corpoCertificado.style, {
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: "25px"
+        });
+    }
+}
+
+function restaurarLayoutPDF(elemento, corpoCertificado, estilos) {
+    Object.assign(elemento.style, estilos.certificado);
+
+    if (corpoCertificado && estilos.corpo) {
+        Object.assign(corpoCertificado.style, estilos.corpo);
+    }
+}
+
+function criarPDF(canvas, numeroCertificado) {
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true
+    });
+
+    const larguraPagina = pdf.internal.pageSize.getWidth();
+    const alturaPagina = pdf.internal.pageSize.getHeight();
+
+    const margemExterior = 8;
+    const margemConteudo = 15;
+
+    pdf.setDrawColor(212, 175, 55);
+    pdf.setLineWidth(1.2);
+
+    pdf.roundedRect(
+        margemExterior,
+        margemExterior,
+        larguraPagina - (margemExterior * 2),
+        alturaPagina - (margemExterior * 2),
+        3,
+        3,
+        "S"
+    );
+
+    const larguraUtil = larguraPagina - (margemConteudo * 2);
+    const alturaUtil = alturaPagina - (margemConteudo * 2);
+
+    let larguraImagem = larguraUtil;
+    let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
+
+    if (alturaImagem > alturaUtil) {
+        const fatorReducao = alturaUtil / alturaImagem;
+
+        larguraImagem *= fatorReducao;
+        alturaImagem *= fatorReducao;
+    }
+
+    const posicaoX = (larguraPagina - larguraImagem) / 2;
+    const posicaoY = (alturaPagina - alturaImagem) / 2;
+
+    pdf.addImage(
+        canvas.toDataURL("image/jpeg", 0.96),
+        "JPEG",
+        posicaoX,
+        posicaoY,
+        larguraImagem,
+        alturaImagem,
+        undefined,
+        "FAST"
+    );
+
+    pdf.save(`${formatarTexto(numeroCertificado, "Certificado")}.pdf`);
+}
 
 async function gerarPDF() {
-    const botao = document.getElementById("btnPDF");
-    const elemento = document.getElementById("printArea");
-    const contentorQR = document.getElementById("qrCode");
+    const botao = obterElemento("btnPDF");
+    const elemento = obterElemento("printArea");
+    const contentorQR = obterElemento("qrCode");
 
-    if (!elemento || !contentorQR || !window.html2canvas || !window.jspdf) {
-        console.error("Bibliotecas ou área do certificado indisponíveis.");
+    if (!botao || !elemento || !contentorQR) {
+        console.error("Área ou botão de certificado indisponível.");
+        return;
+    }
+
+    if (!window.html2canvas || !window.jspdf) {
+        console.error("Bibliotecas de PDF indisponíveis.");
+        alert("Não foi possível carregar as bibliotecas de PDF.");
         return;
     }
 
     botao.disabled = true;
     botao.style.display = "none";
 
-    let imagemQR = null;
+    const corpoCertificado = elemento.querySelector(".certificate-body");
+    const estilos = guardarEstilosCertificado(elemento, corpoCertificado);
+
     let elementosQROriginais = [];
 
-    const estilosOriginais = {
-        width: elemento.style.width,
-        minWidth: elemento.style.minWidth,
-        maxWidth: elemento.style.maxWidth,
-        margin: elemento.style.margin,
-        padding: elemento.style.padding,
-        border: elemento.style.border,
-        borderRadius: elemento.style.borderRadius,
-        boxSizing: elemento.style.boxSizing,
-        transform: elemento.style.transform
-    };
-
-    const corpoCertificado = elemento.querySelector(".certificate-body");
-
-    const estilosCorpo = corpoCertificado
-        ? {
-            display: corpoCertificado.style.display,
-            gridTemplateColumns: corpoCertificado.style.gridTemplateColumns,
-            gap: corpoCertificado.style.gap
-        }
-        : null;
-
     try {
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        await esperarFrame();
+        await esperarFrame();
 
-        /*
-         * QRCode.js pode criar canvas, imagem ou tabela, conforme o browser.
-         * Guardamos os elementos atuais e ocultamo-los antes de inserir
-         * uma única versão PNG para a captura do html2canvas.
-         */
-        elementosQROriginais = Array.from(
-            contentorQR.querySelectorAll("canvas, img, table")
-        );
+        const qrPreparado = await prepararQRParaPDF(contentorQR);
+        elementosQROriginais = qrPreparado.elementosOriginais;
 
-        const canvasQR = contentorQR.querySelector("canvas");
+        aplicarLayoutPDF(elemento, corpoCertificado);
 
-        if (canvasQR) {
-            imagemQR = document.createElement("img");
-            imagemQR.src = canvasQR.toDataURL("image/png");
-            imagemQR.alt = "QR Code da Certificação";
-            imagemQR.className = "qr-pdf-temporario";
-
-            Object.assign(imagemQR.style, {
-                display: "block",
-                width: "140px",
-                height: "140px",
-                margin: "0 auto"
-            });
-
-            await new Promise(resolve => {
-                imagemQR.onload = resolve;
-                imagemQR.onerror = resolve;
-            });
-        }
-
-        elementosQROriginais.forEach(elementoQR => {
-            elementoQR.style.display = "none";
-        });
-
-        if (imagemQR) {
-            contentorQR.appendChild(imagemQR);
-        }
-
-        /*
-         * Formato fixo para captura, independentemente do dispositivo.
-         * A moldura CSS é ocultada: a moldura dourada é desenhada pelo jsPDF.
-         */
-        elemento.style.width = "794px";
-        elemento.style.minWidth = "794px";
-        elemento.style.maxWidth = "794px";
-        elemento.style.margin = "0 auto";
-        elemento.style.padding = "40px";
-        elemento.style.boxSizing = "border-box";
-        elemento.style.border = "none";
-        elemento.style.borderRadius = "0";
-        elemento.style.transform = "none";
-
-        if (corpoCertificado) {
-            corpoCertificado.style.display = "grid";
-            corpoCertificado.style.gridTemplateColumns =
-                "repeat(2, minmax(0, 1fr))";
-            corpoCertificado.style.gap = "25px";
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 350));
+        await esperar(350);
 
         const larguraCaptura = elemento.scrollWidth;
         const alturaCaptura = elemento.scrollHeight;
@@ -280,109 +496,34 @@ async function gerarPDF() {
             logging: false
         });
 
-        const { jsPDF } = window.jspdf;
+        const numeroCertificado = obterElemento("resNumero")?.textContent.trim();
 
-        const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4",
-            compress: true
-        });
-
-        const larguraPagina = pdf.internal.pageSize.getWidth();
-        const alturaPagina = pdf.internal.pageSize.getHeight();
-
-        const margemExterior = 8;
-
-        pdf.setDrawColor(212, 175, 55);
-        pdf.setLineWidth(1.2);
-
-        pdf.roundedRect(
-            margemExterior,
-            margemExterior,
-            larguraPagina - (margemExterior * 2),
-            alturaPagina - (margemExterior * 2),
-            3,
-            3,
-            "S"
-        );
-
-        const margemConteudo = 15;
-        const larguraUtil = larguraPagina - (margemConteudo * 2);
-        const alturaUtil = alturaPagina - (margemConteudo * 2);
-
-        let larguraImagem = larguraUtil;
-        let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
-
-        if (alturaImagem > alturaUtil) {
-            const fatorReducao = alturaUtil / alturaImagem;
-
-            larguraImagem *= fatorReducao;
-            alturaImagem *= fatorReducao;
-        }
-
-        const posicaoX = (larguraPagina - larguraImagem) / 2;
-        const posicaoY = (alturaPagina - alturaImagem) / 2;
-
-        pdf.addImage(
-            canvas.toDataURL("image/jpeg", 0.96),
-            "JPEG",
-            posicaoX,
-            posicaoY,
-            larguraImagem,
-            alturaImagem,
-            undefined,
-            "FAST"
-        );
-
-        const numero = document
-            .getElementById("resNumero")
-            .textContent
-            .trim() || "Certificado";
-
-        pdf.save(`${numero}.pdf`);
+        criarPDF(canvas, numeroCertificado);
 
     } catch (erro) {
         console.error("Erro ao gerar o PDF:", erro);
         alert("Não foi possível gerar o certificado. Tente novamente.");
 
-    } 
-finally {
-    /*
-     * Remove primeiro qualquer imagem PNG temporária do QR.
-     * A classe evita deixar duplicações no browser após exportar.
-     */
-    const imagensQRTemporarias = contentorQR.querySelectorAll(
-        "img.qr-pdf-temporario"
-    );
+    } finally {
+        restaurarQRAposPDF(contentorQR, elementosQROriginais);
+        restaurarLayoutPDF(elemento, corpoCertificado, estilos);
 
-    imagensQRTemporarias.forEach(imagem => imagem.remove());
-
-    /*
-     * Volta a mostrar apenas o QR original criado pelo QRCode.js.
-     */
-    elementosQROriginais.forEach(elementoQR => {
-        elementoQR.style.display = "";
-    });
-
-    elemento.style.width = estilosOriginais.width;
-    elemento.style.minWidth = estilosOriginais.minWidth;
-    elemento.style.maxWidth = estilosOriginais.maxWidth;
-    elemento.style.margin = estilosOriginais.margin;
-    elemento.style.padding = estilosOriginais.padding;
-    elemento.style.border = estilosOriginais.border;
-    elemento.style.borderRadius = estilosOriginais.borderRadius;
-    elemento.style.boxSizing = estilosOriginais.boxSizing;
-    elemento.style.transform = estilosOriginais.transform;
-
-    if (corpoCertificado && estilosCorpo) {
-        corpoCertificado.style.display = estilosCorpo.display;
-        corpoCertificado.style.gridTemplateColumns =
-            estilosCorpo.gridTemplateColumns;
-        corpoCertificado.style.gap = estilosCorpo.gap;
+        botao.disabled = false;
+        botao.style.display = "block";
     }
+}
 
-    botao.disabled = false;
-    botao.style.display = "block";
-}
-}
+window.addEventListener("DOMContentLoaded", async () => {
+    await carregarCertificados();
+
+    const cert = obterParametro("cert");
+
+    if (cert) {
+        const campoNumero = obterElemento("certNumber");
+
+        if (campoNumero) {
+            campoNumero.value = cert;
+            verificarCertificado();
+        }
+    }
+});
