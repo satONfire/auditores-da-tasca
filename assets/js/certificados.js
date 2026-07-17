@@ -241,6 +241,11 @@ const canvas = await html2canvas(elemento, {
     scrollY: 0,
     ignoreElements: (element) => element.classList.contains("no-print")
 });
+        console.log({
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    proporcao: canvas.height / canvas.width
+});
 
         const { jsPDF } = window.jspdf;
 
