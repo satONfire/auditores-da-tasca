@@ -64,9 +64,9 @@ function definirEstado(estadoCertificado) {
 }
 
 function gerarQRCode(numeroCertificado) {
-    const qr = document.getElementById("qrCode");
+   const qr = document.getElementById("qrCode");
 
-    qr.innerHTML = "";
+qr.innerHTML = "";
 
 new QRCode(qr, {
     text:
@@ -74,9 +74,8 @@ new QRCode(qr, {
         "/verificar-certificacao.html?cert=" +
         encodeURIComponent(resultado.numero),
 
-    width: 160,
-    height: 160,
-    correctLevel: QRCode.CorrectLevel.H
+    width: 140,
+    height: 140
 });
 
     const qrGerado = qr.querySelector("canvas, img");
