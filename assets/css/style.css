@@ -997,42 +997,63 @@ button {
   }
 
 
-nav{
+#mainNav{
 
     display:flex;
 
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
 
-    justify-content:center;
+    justify-content:flex-start;
 
     align-items:center;
 
-    gap:16px;
-
     width:100%;
+
+    gap:20px;
+
+    overflow-x:auto;
+
+    overflow-y:hidden;
+
+    white-space:nowrap;
+
+    padding:0 15px;
 
     position:static;
 
     background:transparent;
 
-    padding:0;
+    -webkit-overflow-scrolling:touch;
+
+    scrollbar-width:none;
+
+    -ms-overflow-style:none;
 
 }
 
-nav a{
+#mainNav::-webkit-scrollbar{
 
-    display:block;
-
-    padding:6px 0;
-
-    font-size:14px;
+    display:none;
 
 }
-   .menu-toggle{
 
-    display:block;
+#mainNav a{
 
-    z-index:1001;
+    flex:0 0 auto;
+
+    width:auto;
+
+    padding:8px 0;
+
+    font-size:13px;
+
+    border-bottom:none;
+
+}
+
+.menu-toggle{
+
+    display:none;
 
 }
 
@@ -1074,9 +1095,9 @@ nav a{
 
 
 
-  .brand img {
-    height: 42px;
-  }
+.brand img {
+    height: 60px;
+}
 
   nav a {
     width: 100%;
