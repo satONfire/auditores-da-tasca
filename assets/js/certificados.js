@@ -385,3 +385,4 @@ finally {
     botao.disabled = false;
     botao.style.display = "block";
 }
+}
