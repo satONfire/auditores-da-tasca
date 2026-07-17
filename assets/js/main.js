@@ -94,34 +94,6 @@ function initHeader() {
 
     });
 
-    if(toggle && menu){
-
-        toggle.addEventListener("click", () => {
-
-            menu.classList.toggle("open");
-
-            toggle.innerHTML = menu.classList.contains("open")
-                ? "✕"
-                : "☰";
-
-        });
-
-        menu.querySelectorAll("a").forEach(link => {
-
-            link.addEventListener("click", () => {
-
-                menu.classList.remove("open");
-
-                toggle.innerHTML = "☰";
-
-            });
-
-        });
-
-    }
-
-}
-
 /* =====================================================
    REVEAL
 ===================================================== */
