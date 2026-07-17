@@ -170,6 +170,38 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
 });
+
+async function imagemParaBase64(src){
+
+    return new Promise((resolve,reject)=>{
+
+        const img=new Image();
+
+        img.crossOrigin="anonymous";
+
+        img.onload=()=>{
+
+            const canvas=document.createElement("canvas");
+
+            canvas.width=img.width;
+            canvas.height=img.height;
+
+            const ctx=canvas.getContext("2d");
+
+            ctx.drawImage(img,0,0);
+
+            resolve(canvas.toDataURL("image/png"));
+
+        };
+
+        img.onerror=reject;
+
+        img.src=src;
+
+    });
+
+}
+
 async function gerarPDF() {
 
     const botao = document.getElementById("btnPDF");
@@ -191,11 +223,20 @@ async function gerarPDF() {
 
         await new Promise(resolve => setTimeout(resolve, 200));
 
+        const body = elemento.querySelector(".certificate-body");
+
+const gridOriginal = body.style.gridTemplateColumns;
+
+body.style.gridTemplateColumns = "1fr 1fr";
+        
 const canvas = await html2canvas(elemento, {
     scale: 3,
     useCORS: true,
     backgroundColor: "#ffffff",
-    windowWidth: 794,
+    windowWidth: elemento.scrollWidth,
+    windowHeight: elemento.scrollHeight,
+    width: elemento.scrollWidth,
+    height: elemento.scrollHeight,
     scrollX: 0,
     scrollY: 0,
     ignoreElements: (element) => element.classList.contains("no-print")
@@ -252,7 +293,7 @@ pdf.addImage(
         elemento.style.maxWidth = maxWidthOriginal;
         elemento.style.transform = transformOriginal;
         elemento.style.margin = marginOriginal;
-
+        body.style.gridTemplateColumns = gridOriginal;
         botao.style.display = "block";
 
     }
