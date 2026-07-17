@@ -1005,13 +1005,13 @@ button {
 
     justify-content:center;
 
-    align-items:center;
+    align-items:left;
 
-    gap:6px 10px;
+    gap:6px 8px;
 
     width:100%;
 
-    padding:0 10px;
+    padding:0 6px;
 
 }
 
