@@ -209,18 +209,29 @@ const canvas = await html2canvas(elemento, {
             format: "a4"
         });
 
-        const margem = 10;
-        const larguraPDF = 190;
-        const alturaPDF = canvas.height * larguraPDF / canvas.width;
+const margem = 10;
 
-        pdf.addImage(
-            canvas.toDataURL("image/png"),
-            "PNG",
-            margem,
-            margem,
-            larguraPDF,
-            alturaPDF
-        );
+const larguraPagina = pdf.internal.pageSize.getWidth() - margem * 2;
+const alturaPagina = pdf.internal.pageSize.getHeight() - margem * 2;
+
+let largura = larguraPagina;
+let altura = canvas.height * largura / canvas.width;
+
+if (altura > alturaPagina) {
+
+    altura = alturaPagina;
+    largura = canvas.width * altura / canvas.height;
+
+}
+
+pdf.addImage(
+    imgData,
+    "PNG",
+    (pdf.internal.pageSize.getWidth() - largura) / 2,
+    margem,
+    largura,
+    altura
+);
 
         const numero = document.getElementById("resNumero").textContent || "Certificado";
 
