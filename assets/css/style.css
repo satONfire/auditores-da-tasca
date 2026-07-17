@@ -1007,7 +1007,7 @@ button {
 
     align-items:center;
 
-    gap:8px;
+    gap:6px;
 
     width:100%;
 
@@ -1017,7 +1017,7 @@ button {
 
     white-space:nowrap;
 
-    padding:0 8px;
+    padding:0 6px;
 
     -webkit-overflow-scrolling:touch;
 
@@ -1033,7 +1033,7 @@ button {
 
     padding:6px 0;
 
-    font-size:10px;
+    font-size:9px;
 
     font-weight:600;
 
