@@ -1213,4 +1213,13 @@ button {
   .verify-box {
     flex-direction: column;
   }
+/* Mostra apenas um QR code no browser.
+   O canvas é a versão original usada no desktop. */
+#qrCode canvas {
+    display: block !important;
+}
 
+#qrCode img:not(.qr-pdf-temporario),
+#qrCode table {
+    display: none !important;
+}
