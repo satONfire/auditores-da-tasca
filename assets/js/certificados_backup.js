@@ -154,9 +154,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function gerarPDF() {
     const botao = document.getElementById("btnPDF");
-    const original = document.getElementById("printArea");
+    const elemento = document.getElementById("printArea");
+    const qrOriginal = document.querySelector("#qrCode canvas");
 
-    if (!original || !window.html2canvas || !window.jspdf) {
+    if (!elemento || !window.html2canvas || !window.jspdf) {
         console.error("Não foi possível iniciar a geração do PDF.");
         return;
     }
@@ -164,104 +165,104 @@ async function gerarPDF() {
     botao.disabled = true;
     botao.style.display = "none";
 
-    let areaPDF = null;
+    const estilosOriginais = {
+        width: elemento.style.width,
+        minWidth: elemento.style.minWidth,
+        maxWidth: elemento.style.maxWidth,
+        margin: elemento.style.margin,
+        transform: elemento.style.transform
+    };
+
+    const corpoCertificado = elemento.querySelector(".certificate-body");
+
+    const estilosCorpo = corpoCertificado
+        ? {
+            display: corpoCertificado.style.display,
+            gridTemplateColumns: corpoCertificado.style.gridTemplateColumns,
+            gap: corpoCertificado.style.gap
+        }
+        : null;
 
     try {
         /*
-         * Cria uma cópia autónoma em formato desktop.
-         * A cópia fica fora do ecrã: não interfere com o layout visível.
+         * Aguarda a atualização visual do browser depois de esconder o botão.
          */
-        areaPDF = original.cloneNode(true);
-        areaPDF.id = "printAreaPDF";
-
-        const botaoPDFClonado = areaPDF.querySelector("#btnPDF");
-        if (botaoPDFClonado) {
-            botaoPDFClonado.remove();
-        }
-
-        const larguraCaptura = 794;
-        const margemCaptura = 24;
-
-        Object.assign(areaPDF.style, {
-            position: "fixed",
-            left: "-10000px",
-            top: "0",
-            display: "block",
-            visibility: "visible",
-            width: `${larguraCaptura}px`,
-            minWidth: `${larguraCaptura}px`,
-            maxWidth: `${larguraCaptura}px`,
-            margin: "0",
-            padding: "50px",
-            boxSizing: "border-box",
-            background: "#ffffff",
-            color: "#222222",
-            overflow: "visible",
-            transform: "none"
-        });
-
-        document.body.appendChild(areaPDF);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
         /*
-         * Força apenas a cópia a usar duas colunas.
-         * Evita as media queries mobile que causavam o corte.
+         * No telemóvel, o QR code é normalmente um canvas. Convertemo-lo
+         * para imagem temporariamente para o html2canvas o capturar sempre.
          */
-        const corpoCertificado = areaPDF.querySelector(".certificate-body");
+        let imagemQR = null;
+
+        if (qrOriginal) {
+            try {
+                imagemQR = document.createElement("img");
+                imagemQR.src = qrOriginal.toDataURL("image/png");
+                imagemQR.alt = "QR Code da Certificação";
+
+                Object.assign(imagemQR.style, {
+                    width: "140px",
+                    height: "140px",
+                    display: "block",
+                    margin: "0 auto"
+                });
+
+                qrOriginal.style.display = "none";
+                qrOriginal.parentNode.appendChild(imagemQR);
+
+                await new Promise(resolve => {
+                    imagemQR.onload = resolve;
+                    imagemQR.onerror = resolve;
+                });
+            } catch (erroQR) {
+                console.warn("Não foi possível converter o QR code:", erroQR);
+            }
+        }
+
+        /*
+         * Força a exportação a usar uma largura de desktop.
+         * Não é criada uma cópia fora do ecrã, evitando falhas de renderização.
+         */
+        elemento.style.width = "794px";
+        elemento.style.minWidth = "794px";
+        elemento.style.maxWidth = "794px";
+        elemento.style.margin = "0 auto";
+        elemento.style.transform = "none";
 
         if (corpoCertificado) {
-            Object.assign(corpoCertificado.style, {
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: "25px",
-                width: "100%"
-            });
+            corpoCertificado.style.display = "grid";
+            corpoCertificado.style.gridTemplateColumns =
+                "repeat(2, minmax(0, 1fr))";
+            corpoCertificado.style.gap = "25px";
         }
 
-        const rodapeCertificado = areaPDF.querySelector(".certificate-footer");
+        await new Promise(resolve => setTimeout(resolve, 450));
 
-        if (rodapeCertificado) {
-            Object.assign(rodapeCertificado.style, {
-                display: "block",
-                width: "100%",
-                textAlign: "center"
-            });
-        }
+        const largura = elemento.scrollWidth;
+        const altura = elemento.scrollHeight;
 
-        // Garante que imagens e QR code terminam de carregar antes da captura.
-        const imagens = Array.from(areaPDF.querySelectorAll("img"));
-
-        await Promise.all(
-            imagens.map(imagem => {
-                if (imagem.complete) {
-                    return Promise.resolve();
-                }
-
-                return new Promise(resolve => {
-                    imagem.onload = resolve;
-                    imagem.onerror = resolve;
-                });
-            })
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        const larguraReal = areaPDF.scrollWidth;
-        const alturaReal = areaPDF.scrollHeight;
-
-        const canvas = await html2canvas(areaPDF, {
+        const canvas = await html2canvas(elemento, {
             backgroundColor: "#ffffff",
             useCORS: true,
-            scale: 2,
 
-            width: larguraReal,
-            height: alturaReal,
-            windowWidth: larguraReal,
-            windowHeight: alturaReal,
+            /*
+             * Uma escala moderada evita PDFs vazios ou incompletos
+             * por limites de memória em Safari/iOS e Android.
+             */
+            scale: 1.5,
+
+            width: largura,
+            height: altura,
+            windowWidth: largura,
+            windowHeight: altura,
 
             scrollX: 0,
-            scrollY: 0,
-            x: 0,
-            y: 0,
+            scrollY: -window.scrollY,
+
+            ignoreElements: item =>
+                item.classList.contains("no-print"),
 
             logging: false
         });
@@ -279,21 +280,16 @@ async function gerarPDF() {
         const larguraPagina = pdf.internal.pageSize.getWidth();
         const alturaPagina = pdf.internal.pageSize.getHeight();
 
-        const larguraDisponivel = larguraPagina - (margemPDF * 2);
-        const alturaDisponivel = alturaPagina - (margemPDF * 2);
+        const larguraUtil = larguraPagina - (margemPDF * 2);
+        const alturaUtil = alturaPagina - (margemPDF * 2);
 
-        let larguraImagem = larguraDisponivel;
+        let larguraImagem = larguraUtil;
         let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
 
-        /*
-         * Se for mais alto do que a área útil A4, reduz mantendo proporções.
-         * A posição é calculada após o redimensionamento, garantindo centragem.
-         */
-        if (alturaImagem > alturaDisponivel) {
-            const escala = alturaDisponivel / alturaImagem;
-
-            larguraImagem *= escala;
-            alturaImagem *= escala;
+        if (alturaImagem > alturaUtil) {
+            const fator = alturaUtil / alturaImagem;
+            larguraImagem *= fator;
+            alturaImagem *= fator;
         }
 
         const posicaoX = (larguraPagina - larguraImagem) / 2;
@@ -317,12 +313,51 @@ async function gerarPDF() {
 
         pdf.save(`${numero}.pdf`);
 
+        /*
+         * Restaura a versão canvas do QR code após exportar.
+         */
+        if (imagemQR) {
+            imagemQR.remove();
+        }
+
+        if (qrOriginal) {
+            qrOriginal.style.display = "";
+        }
+
     } catch (erro) {
-        console.error("Erro ao gerar PDF:", erro);
+        console.error("Erro ao gerar o PDF:", erro);
         alert("Não foi possível gerar o certificado. Tente novamente.");
+
     } finally {
-        if (areaPDF) {
-            areaPDF.remove();
+        /*
+         * Restaura sempre o layout normal, inclusive se houver erro.
+         */
+        elemento.style.width = estilosOriginais.width;
+        elemento.style.minWidth = estilosOriginais.minWidth;
+        elemento.style.maxWidth = estilosOriginais.maxWidth;
+        elemento.style.margin = estilosOriginais.margin;
+        elemento.style.transform = estilosOriginais.transform;
+
+        if (corpoCertificado && estilosCorpo) {
+            corpoCertificado.style.display = estilosCorpo.display;
+            corpoCertificado.style.gridTemplateColumns =
+                estilosCorpo.gridTemplateColumns;
+            corpoCertificado.style.gap = estilosCorpo.gap;
+        }
+
+        /*
+         * Garante a limpeza do QR convertido mesmo em caso de erro.
+         */
+        const imagemQRTemporaria = document.querySelector(
+            "#qrCode img[alt='QR Code da Certificação']"
+        );
+
+        if (imagemQRTemporaria) {
+            imagemQRTemporaria.remove();
+        }
+
+        if (qrOriginal) {
+            qrOriginal.style.display = "";
         }
 
         botao.disabled = false;
