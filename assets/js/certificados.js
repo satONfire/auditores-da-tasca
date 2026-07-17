@@ -165,36 +165,32 @@ async function gerarPDF() {
     botao.style.display = "none";
 
     let areaPDF = null;
-    let contentorCaptura = null;
 
     try {
         /*
-         * Cópia do certificado para exportação.
-         * Não altera o certificado que está visível ao utilizador.
+         * Cria uma cópia autónoma em formato desktop.
+         * A cópia fica fora do ecrã: não interfere com o layout visível.
          */
         areaPDF = original.cloneNode(true);
         areaPDF.id = "printAreaPDF";
 
-        const botaoClonado = areaPDF.querySelector("#btnPDF");
-
-        if (botaoClonado) {
-            botaoClonado.remove();
+        const botaoPDFClonado = areaPDF.querySelector("#btnPDF");
+        if (botaoPDFClonado) {
+            botaoPDFClonado.remove();
         }
 
-        /*
-         * Esta largura fixa garante o mesmo layout desktop
-         * no PC e no telemóvel.
-         */
-        const larguraCertificado = 794;
-        const margemSeguranca = 40;
+        const larguraCaptura = 794;
+        const margemCaptura = 24;
 
         Object.assign(areaPDF.style, {
-            position: "static",
+            position: "fixed",
+            left: "-10000px",
+            top: "0",
             display: "block",
             visibility: "visible",
-            width: `${larguraCertificado}px`,
-            minWidth: `${larguraCertificado}px`,
-            maxWidth: `${larguraCertificado}px`,
+            width: `${larguraCaptura}px`,
+            minWidth: `${larguraCaptura}px`,
+            maxWidth: `${larguraCaptura}px`,
             margin: "0",
             padding: "50px",
             boxSizing: "border-box",
@@ -204,32 +200,11 @@ async function gerarPDF() {
             transform: "none"
         });
 
-        /*
-         * Margem branca exterior: protege integralmente o aro,
-         * incluindo as zonas curvas da border-radius.
-         */
-        contentorCaptura = document.createElement("div");
-
-        Object.assign(contentorCaptura.style, {
-            position: "fixed",
-            top: "0",
-            left: "-10000px",
-            display: "block",
-            visibility: "visible",
-            width: `${larguraCertificado + (margemSeguranca * 2)}px`,
-            minWidth: `${larguraCertificado + (margemSeguranca * 2)}px`,
-            padding: `${margemSeguranca}px`,
-            boxSizing: "border-box",
-            background: "#ffffff",
-            overflow: "visible"
-        });
-
-        contentorCaptura.appendChild(areaPDF);
-        document.body.appendChild(contentorCaptura);
+        document.body.appendChild(areaPDF);
 
         /*
-         * Força a versão exportada a manter duas colunas,
-         * mesmo quando a exportação é iniciada num telemóvel.
+         * Força apenas a cópia a usar duas colunas.
+         * Evita as media queries mobile que causavam o corte.
          */
         const corpoCertificado = areaPDF.querySelector(".certificate-body");
 
@@ -248,15 +223,11 @@ async function gerarPDF() {
             Object.assign(rodapeCertificado.style, {
                 display: "block",
                 width: "100%",
-                textAlign: "center",
-                marginTop: "40px"
+                textAlign: "center"
             });
         }
 
-        /*
-         * Espera que os logótipos, badge e QR code estejam
-         * disponíveis antes de construir a imagem final.
-         */
+        // Garante que imagens e QR code terminam de carregar antes da captura.
         const imagens = Array.from(areaPDF.querySelectorAll("img"));
 
         await Promise.all(
@@ -272,16 +243,12 @@ async function gerarPDF() {
             })
         );
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 250));
 
-        const larguraReal = contentorCaptura.scrollWidth;
-        const alturaReal = contentorCaptura.scrollHeight;
+        const larguraReal = areaPDF.scrollWidth;
+        const alturaReal = areaPDF.scrollHeight;
 
-        /*
-         * Usa uma escala fixa moderada. Escalas maiores podem exceder
-         * limites de memória do browser em alguns telemóveis.
-         */
-        const canvas = await html2canvas(contentorCaptura, {
+        const canvas = await html2canvas(areaPDF, {
             backgroundColor: "#ffffff",
             useCORS: true,
             scale: 2,
@@ -312,26 +279,23 @@ async function gerarPDF() {
         const larguraPagina = pdf.internal.pageSize.getWidth();
         const alturaPagina = pdf.internal.pageSize.getHeight();
 
-        const larguraUtil = larguraPagina - (margemPDF * 2);
-        const alturaUtil = alturaPagina - (margemPDF * 2);
+        const larguraDisponivel = larguraPagina - (margemPDF * 2);
+        const alturaDisponivel = alturaPagina - (margemPDF * 2);
 
-        let larguraImagem = larguraUtil;
+        let larguraImagem = larguraDisponivel;
         let alturaImagem = (canvas.height * larguraImagem) / canvas.width;
 
         /*
-         * Mantém tudo numa página A4, sem cortar o certificado.
+         * Se for mais alto do que a área útil A4, reduz mantendo proporções.
+         * A posição é calculada após o redimensionamento, garantindo centragem.
          */
-        if (alturaImagem > alturaUtil) {
-            const fatorReducao = alturaUtil / alturaImagem;
+        if (alturaImagem > alturaDisponivel) {
+            const escala = alturaDisponivel / alturaImagem;
 
-            larguraImagem *= fatorReducao;
-            alturaImagem *= fatorReducao;
+            larguraImagem *= escala;
+            alturaImagem *= escala;
         }
 
-        /*
-         * Centralização horizontal e vertical depois do ajuste
-         * proporcional das dimensões.
-         */
         const posicaoX = (larguraPagina - larguraImagem) / 2;
         const posicaoY = (alturaPagina - alturaImagem) / 2;
 
@@ -354,18 +318,14 @@ async function gerarPDF() {
         pdf.save(`${numero}.pdf`);
 
     } catch (erro) {
-        console.error("Erro ao gerar o PDF:", erro);
+        console.error("Erro ao gerar PDF:", erro);
         alert("Não foi possível gerar o certificado. Tente novamente.");
-
     } finally {
-        if (contentorCaptura) {
-            contentorCaptura.remove();
-        } else if (areaPDF) {
+        if (areaPDF) {
             areaPDF.remove();
         }
 
         botao.disabled = false;
         botao.style.display = "block";
     }
-}
 }
